@@ -1,4 +1,4 @@
-# svodki
+# SVOdki
 
 ## О проекте / About the Project
 
