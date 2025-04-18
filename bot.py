@@ -9,7 +9,7 @@ from src.presentation.screen.create_bot_screen import router as create_bot_scree
 
 
 async def main() -> None:
-    bot = Bot(token=config.TG_TOKEN.get_secret_value())
+    bot = Bot(token=config.TELEGRAM_TOKEN.get_secret_value())
     dp = Dispatcher()
 
     # Command routers
