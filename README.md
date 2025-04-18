@@ -3,10 +3,10 @@
 ## О проекте / About the Project
 
 **Русский**
-svodki — это кейс, который позволяет генерировать контент для телеграм-ботов на основе заданных тематик. Проект помогает автоматизировать создание текстов, адаптированных под конкретные интересы аудитории.
+SVOdki — это кейс, который позволяет генерировать контент для телеграм-ботов на основе заданных тематик. Проект помогает автоматизировать создание текстов, адаптированных под конкретные интересы аудитории.
 
 **English**
-svodki is a case that enables content generation for Telegram bots based on specific topics. The project helps automate the creation of texts tailored to the interests of your audience.
+SVOdki is a case that enables content generation for Telegram bots based on specific topics. The project helps automate the creation of texts tailored to the interests of your audience.
 
 ---
 
