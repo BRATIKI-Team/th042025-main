@@ -29,7 +29,12 @@ class Config(BaseSettings):
 
     # Database
     DATABASE_PATH: str = "db/db.sqlite"
+    CHROMADB_PATH: str = "db/chroma"
     MIGRATIONS_PATH: str = "src/infrastructure/database/migrations"
+
+    # OPENAI
+    OPENAI_API_KEY: SecretStr
+    OPENAI_MODEL_NAME: str = "gpt-4o-mini"
 
     model_config = SettingsConfigDict(env_file=".env")
 
