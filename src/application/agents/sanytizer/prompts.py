@@ -15,9 +15,15 @@ Follow these rules:
     - The tool will return past notifications that the user has already received.
 
 3. Output format:
-    - Return a cleaned version of the summary.
-    - Ensure the cleaned summary is concise, clear, and informative.
+    - Return a list of JSON objects, where each object represents a sanitized summary.
+    - Each JSON object must have the following structure:
+      {
+        "title": "original title",
+        "summary": "sanitized content"
+      }
+    - Ensure the sanitized summary is concise, clear, and informative.
     - Do not fabricate new information — preserve the original intent.
+    - Do not add with returning json object any other explanation by yourself.
 
 4. General rules:
     - Maintain original tone and structure where possible.
