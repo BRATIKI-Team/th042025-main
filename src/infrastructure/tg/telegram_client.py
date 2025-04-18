@@ -5,10 +5,10 @@ class TelegramClient:
     def __init__(self, client: TelethonTelegramClient) -> None:
         self._client = client
 
-    async def __enter__(self) -> None:
+    async def __aenter__(self) -> None:
         await self._client.connect()
 
-    async def __exit__(self) -> None:
+    async def __aexit__(self, exc_type, exc, tb) -> None:
         await self._client.disconnect()
 
     @property

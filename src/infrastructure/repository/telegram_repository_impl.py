@@ -44,9 +44,11 @@ class TelegramRepositoryImpl(TelegramRepository):
             os.makedirs(self._download_path, exist_ok=True)
 
             # Get the message
-            message = await self._tg_client.engine.get_messages(
-                channel_username, ids=message_id
-            )
+            async with self._tg_client:
+                message = await self._tg_client.engine.get_messages(
+                    channel_username, ids=message_id
+                )
+
             if not message:
                 raise TelegramError(
                     f"Message with ID {message_id} not found in channel {channel_username}"
@@ -120,46 +122,47 @@ class TelegramRepositoryImpl(TelegramRepository):
                     str, list[ChannelMessageModel]
                 ] = {}  # Dictionary to store grouped messages
 
-                async for message in self._tg_client.engine.iter_messages(
-                    channel_username, limit=limit, offset_date=offset_date
-                ):
-                    if isinstance(message, TelethonMessage):
-                        # Get channel_id from peer_id if it's a channel message
-                        source = None
-                        if hasattr(message, "peer_id") and hasattr(
-                            message.peer_id, "channel_id"
-                        ):
-                            source = str(message.peer_id.channel_id)
+                async with self._tg_client:
+                    async for message in self._tg_client.engine.iter_messages(
+                        channel_username, limit=limit, offset_date=offset_date
+                    ):
+                        if isinstance(message, TelethonMessage):
+                            # Get channel_id from peer_id if it's a channel message
+                            source = None
+                            if hasattr(message, "peer_id") and hasattr(
+                                message.peer_id, "channel_id"
+                            ):
+                                source = str(message.peer_id.channel_id)
 
-                        # Check if message is part of a group
-                        grouped_id = getattr(message, "grouped_id", None)
+                            # Check if message is part of a group
+                            grouped_id = getattr(message, "grouped_id", None)
 
-                        if grouped_id:
-                            # If this is a grouped message, add it to the group
-                            if grouped_id not in grouped_messages:
-                                grouped_messages[grouped_id] = []
-                            grouped_messages[grouped_id].append(message)
-                        else:
-                            # If this is a standalone message, create it
-                            messages_dict[message.id] = ChannelMessageModel(
-                                message_id=message.id,
-                                date=message.date,
-                                text=message.text or "",
-                                attachments=[],
-                                source=source,
-                            )
-
-                            # Add attachments if present
-                            if message.media:
-                                attachments = await self._get_message_attachments(
-                                    message
+                            if grouped_id:
+                                # If this is a grouped message, add it to the group
+                                if grouped_id not in grouped_messages:
+                                    grouped_messages[grouped_id] = []
+                                grouped_messages[grouped_id].append(message)
+                            else:
+                                # If this is a standalone message, create it
+                                messages_dict[message.id] = ChannelMessageModel(
+                                    message_id=message.id,
+                                    date=message.date,
+                                    text=message.text or "",
+                                    attachments=[],
+                                    source=source,
                                 )
-                                messages_dict[message.id].attachments.extend(
-                                    attachments
-                                )
+
+                                # Add attachments if present
+                                if message.media:
+                                    attachments = await self._get_message_attachments(
+                                        message
+                                    )
+                                    messages_dict[message.id].attachments.extend(
+                                        attachments
+                                    )
 
                 # Process grouped messages
-                for group_id, group in grouped_messages.items():
+                for _, group in grouped_messages.items():
                     # Sort messages in group by ID
                     group.sort(key=lambda x: x.id)
 
@@ -265,36 +268,39 @@ class TelegramRepositoryImpl(TelegramRepository):
         """
         async with self._semaphore:
             try:
-                entity = await self._tg_client.engine.get_entity(channel_username)
+                async with self._tg_client:
+                    entity = await self._tg_client.engine.get_entity(channel_username)
 
-                if isinstance(entity, TelethonChannel):
+                    if not isinstance(entity, TelethonChannel):
+                        raise TelegramError(
+                            f"Entity {channel_username} is not a channel"
+                        )
+
                     full_channel = await self._tg_client.engine.get_entity(entity)
 
-                    # Safely get channel attributes
-                    channel_id = getattr(entity, "id", None)
-                    title = getattr(entity, "title", "")
-                    username = getattr(entity, "username", None)
-                    description = getattr(full_channel, "about", None)
-                    participants_count = getattr(
-                        full_channel, "participants_count", None
-                    )
-                    is_verified = getattr(entity, "verified", False)
+                # Safely get channel attributes
+                channel_id = getattr(entity, "id", None)
+                title = getattr(entity, "title", "")
+                username = getattr(entity, "username", None)
+                description = getattr(full_channel, "about", None)
+                participants_count = getattr(full_channel, "participants_count", None)
+                is_verified = getattr(entity, "verified", False)
 
-                    # Get photo URL if available
-                    photo_url = None
-                    if hasattr(entity, "photo"):
-                        photo_url = await self._get_channel_photo_url(entity)
+                # Get photo URL if available
+                photo_url = None
 
-                    return ChannelInfoModel(
-                        id=channel_id,
-                        title=title,
-                        username=username,
-                        description=description,
-                        photo_url=photo_url,
-                        participants_count=participants_count,
-                        is_verified=is_verified,
-                    )
-                raise TelegramError(f"Entity {channel_username} is not a channel")
+                if hasattr(entity, "photo"):
+                    photo_url = await self._get_channel_photo_url(entity)
+
+                return ChannelInfoModel(
+                    id=channel_id,
+                    title=title,
+                    username=username,
+                    description=description,
+                    photo_url=photo_url,
+                    participants_count=participants_count,
+                    is_verified=is_verified,
+                )
             except Exception as e:
                 logging.error(f"Failed to get channel info: {str(e)}")
                 raise TelegramError(f"Channel info retrieval failed: {str(e)}")
@@ -311,9 +317,11 @@ class TelegramRepositoryImpl(TelegramRepository):
         """
         if hasattr(entity, "photo") and entity.photo:
             try:
-                photo = await self._tg_client.engine.download_profile_photo(
-                    entity, file=bytes
-                )
+                async with self._tg_client:
+                    photo = await self._tg_client.engine.download_profile_photo(
+                        entity, file=bytes
+                    )
+
                 if photo:
                     return f"data:image/jpeg;base64,{photo.hex()}"
             except Exception as e:

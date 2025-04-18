@@ -30,4 +30,4 @@ class UtilsContainer(Provider):
     def provide_tg_client(
         self, client: FromDishka[TelethonTelegramClient]
     ) -> TelegramClient:
-        return TelegramClient(client=client.value)
+        return TelegramClient(client=client)

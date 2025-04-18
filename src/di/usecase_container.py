@@ -2,8 +2,18 @@ from dishka import FromDishka, Provider, Scope, provide
 
 from src.application.usecase.get_pending_source_usecase import GetPendingSourceUsecase
 from src.application.usecase.has_bot_usecase import HasBotUsecase
+from src.application.usecase.telegram_download_media_usecase import (
+    TelegramDownloadMediaUsecase,
+)
+from src.application.usecase.telegram_get_channel_info_usecase import (
+    TelegramGetChannelInfoUsecase,
+)
+from src.application.usecase.telegram_get_messages_usecase import (
+    TelegramGetMessagesUsecase,
+)
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.source_repository import SourceRepository
+from src.domain.repository.telegram_repository import TelegramRepository
 
 
 class UsecaseContainer(Provider):
@@ -18,3 +28,21 @@ class UsecaseContainer(Provider):
         self, source_repository: FromDishka[SourceRepository]
     ) -> GetPendingSourceUsecase:
         return GetPendingSourceUsecase(source_repository=source_repository)
+
+    @provide(scope=Scope.APP)
+    def telegram_get_channel_info_usecase(
+        self, telegram_repository: FromDishka[TelegramRepository]
+    ) -> TelegramGetChannelInfoUsecase:
+        return TelegramGetChannelInfoUsecase(repository=telegram_repository)
+
+    @provide(scope=Scope.APP)
+    def telegram_get_messages_usecase(
+        self, telegram_repository: FromDishka[TelegramRepository]
+    ) -> TelegramGetMessagesUsecase:
+        return TelegramGetMessagesUsecase(repository=telegram_repository)
+
+    @provide(scope=Scope.APP)
+    def telegram_download_media_usecase(
+        self, telegram_repository: FromDishka[TelegramRepository]
+    ) -> TelegramDownloadMediaUsecase:
+        return TelegramDownloadMediaUsecase(repository=telegram_repository)
