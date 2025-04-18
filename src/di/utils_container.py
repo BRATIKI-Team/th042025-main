@@ -1,13 +1,14 @@
-from dishka import Provider, Scope, provide
-from telethon import TelegramClient
+from dishka import FromDishka, Provider, Scope, provide
+from telethon import TelegramClient as TelethonTelegramClient
 
 from src.infrastructure.config import config
+from src.infrastructure.tg.telegram_client import TelegramClient
 
 
 class UtilsContainer(Provider):
     @provide(scope=Scope.APP)
-    def provide_telegram_client(self) -> TelegramClient:
-        return TelegramClient(
+    def provide_telethon_telegram_client(self) -> TelethonTelegramClient:
+        return TelethonTelegramClient(
             session=config.TELEGRAM_SESSION_FILE,
             api_id=config.TELEGRAM_API_ID,
             api_hash=config.TELEGRAM_API_HASH,
@@ -24,3 +25,9 @@ class UtilsContainer(Provider):
             lang_code=config.TELEGRAM_LANG_CODE,
             system_lang_code=config.TELEGRAM_SYSTEM_LANG_CODE,
         )
+
+    @provide(scope=Scope.APP)
+    def provide_tg_client(
+        self, client: FromDishka[TelethonTelegramClient]
+    ) -> TelegramClient:
+        return TelegramClient(client=client.value)
