@@ -4,11 +4,14 @@ from dishka.integrations.aiogram import AiogramProvider, setup_dishka
 
 from src.di.container import init_container
 from src.infrastructure.config import config
+from src.presentation.command.start_command import router as start_command_router
 
 
 async def main() -> None:
     bot = Bot(token=config.TG_TOKEN.get_secret_value())
     dp = Dispatcher()
+
+    dp.include_router(start_command_router)
 
     container = init_container(specific_providers=[AiogramProvider()])
 
