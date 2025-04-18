@@ -1,5 +1,10 @@
 from dishka import AsyncContainer, Provider, make_async_container
 
+from src.di.repository_container import RepositoryContainer
+from src.di.usecase_container import UsecaseContainer
+
 
 def init_container(specific_providers: list[Provider] = []) -> AsyncContainer:
-    return make_async_container(*specific_providers)
+    return make_async_container(
+        RepositoryContainer(), UsecaseContainer(), *specific_providers
+    )

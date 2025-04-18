@@ -12,7 +12,7 @@ async def main() -> None:
 
     container = init_container(specific_providers=[AiogramProvider()])
 
-    setup_dishka(container=container, router=dp, auto_injections=True)
+    setup_dishka(container=container, router=dp, auto_inject=True)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, skip_updates=False)

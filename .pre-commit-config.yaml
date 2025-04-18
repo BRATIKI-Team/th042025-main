@@ -10,13 +10,13 @@ repos:
     rev: v1.15.0
     hooks:
       - id: mypy
+        exclude: src/infrastructure/database/migrations/*
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
-        exclude: .github/tests.svg
       - id: trailing-whitespace
 
   - repo: https://github.com/psf/black
