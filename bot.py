@@ -7,7 +7,7 @@ from src.infrastructure.config import config
 
 
 async def main() -> None:
-    bot = Bot(token=config.TG_TOKEN)
+    bot = Bot(token=config.TG_TOKEN.get_secret_value())
     dp = Dispatcher()
 
     container = init_container(specific_providers=[AiogramProvider()])

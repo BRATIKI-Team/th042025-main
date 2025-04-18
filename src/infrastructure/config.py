@@ -1,3 +1,4 @@
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,7 +8,7 @@ class Config(BaseSettings):
     """
 
     # Telegram
-    TG_TOKEN: str
+    TG_TOKEN: SecretStr
 
     # Database
     DATABASE_PATH: str = "db/db.sqlite"
