@@ -1,5 +1,6 @@
 from dishka import FromDishka, Provider, Scope, provide
 
+from src.application.usecase.create_bot_usecase import CreateBotUsecase
 from src.application.usecase.get_pending_source_usecase import GetPendingSourceUsecase
 from src.application.usecase.has_bot_usecase import HasBotUsecase
 from src.application.usecase.telegram_download_media_usecase import (
@@ -46,3 +47,9 @@ class UsecaseContainer(Provider):
         self, telegram_repository: FromDishka[TelegramRepository]
     ) -> TelegramDownloadMediaUsecase:
         return TelegramDownloadMediaUsecase(repository=telegram_repository)
+
+    @provide(scope=Scope.APP)
+    def create_bot_usecase(
+        self, bot_repository: FromDishka[BotRepository]
+    ) -> CreateBotUsecase:
+        return CreateBotUsecase(repository=bot_repository)

@@ -1,9 +1,12 @@
+from typing import cast
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from dishka import FromDishka
 
+from src.application.dto.create_bot_request import CreateBotRequest
+from src.application.usecase.create_bot_usecase import CreateBotUsecase
 from src.application.usecase.get_pending_source_usecase import GetPendingSourceUsecase
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
@@ -74,6 +77,8 @@ async def bot_description_handler(
         )
         return
 
+    # TODO validate if bot description has enough details
+
     text = (
         "Шаг 3/4\n\n" "Выберите период, за который будет формироваться сводка новостей."
     )
@@ -90,9 +95,20 @@ async def bot_description_handler(
 
 @router.callback_query(CreateBotStatesGroup.bot_notification_period)
 async def bot_notification_period_handler(
-    callback_query: CallbackQuery, state: FSMContext, bot: Bot
+    callback_query: CallbackQuery,
+    state: FSMContext,
+    bot: Bot,
+    create_bot_usecase: FromDishka[CreateBotUsecase],
 ) -> None:
     period = BotNotificationPeriod(int(callback_query.data))
+
+    bot_id = await create_bot_usecase.execute(
+        request=CreateBotRequest(
+            user_id=callback_query.from_user.id,
+            name=cast(BotNameVO, await state.get_data("bot_name")),
+            period=period,
+        )
+    )
 
     text = (
         "Шаг 4/4\n\n"
@@ -105,7 +121,7 @@ async def bot_notification_period_handler(
         reply_markup=select_sources_kb(),
     )
 
-    await state.update_data(bot_notification_period=period)
+    await state.update_data(bot_notification_period=period, bot_id=bot_id)
     await state.set_state(CreateBotStatesGroup.bot_sources)
 
 
