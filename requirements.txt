@@ -4,5 +4,7 @@ aiogram==3.20.0.post0
 aiosqlite==0.21.0
 dishka==1.5.3
 piccolo==1.24.2
+pydantic==2.11.3
 pydantic-settings==2.9.1
 pytest-asyncio==0.26.0
+Telethon==1.39.0

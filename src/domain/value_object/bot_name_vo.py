@@ -8,5 +8,5 @@ class BotNameVO:
             raise ValueError("Name must be less than 255 characters")
 
     @property
-    def name(self) -> str:
+    def value(self) -> str:
         return self._name

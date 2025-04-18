@@ -26,6 +26,8 @@ class Config(BaseSettings):
     TELEGRAM_SYSTEM_VERSION: str = "Windows 10"
     TELEGRAM_LANG_CODE: str = "en"
     TELEGRAM_SYSTEM_LANG_CODE: str = "en"
+    TELEGRAM_DOWNLOAD_PATH: str = "data"
+    TELEGRAM_PARSER_MAX_WORKERS: int = 5
 
     # Database
     DATABASE_PATH: str = "db/db.sqlite"
