@@ -1,11 +1,12 @@
 from pydantic_ai.models import Model
 from openai import OpenAI
 
+from src.infrastructure.config import config
 
 class ImageGenerator:
-    def __init__(self, llm: Model, api_key: str):
-        self.__llm = llm
-        self.__api_key = api_key
+    def __init__(self):
+        self.__model_name = config.OPENAI_IMAGE_GEN_MODEL_NAME
+        self.__api_key = config.OPENAI_API_KEY.get_secret_value()
         self.__client = self.__create_client()
 
     def __create_client(self) -> OpenAI:
@@ -19,11 +20,10 @@ class ImageGenerator:
         Generates image
         """
         result = self.__client.images.generate(
-            model=self.__llm,  # dall-e-3
+            model=self.__model_name,  # dall-e-3
             prompt=image_prompt,
             size="1024x1024",
-            quality="hd",  # standart 12 sec, hd 18 sec
-            n=1,
-            # response_format="b64_json" #url - url, b64_json ����� ���� �����
+            quality="hd",
+            n=1
         )
         return result.data[0].url
