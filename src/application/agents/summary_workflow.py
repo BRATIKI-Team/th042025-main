@@ -1,10 +1,11 @@
 from typing import List
 
-from src.application.agents.parser.parser_agent import Message, ParserAgent
+from src.application.agents.parser.parser_agent import ParserAgent
 from src.application.agents.sanitizer.sanitizer_agent import SanitizerAgent
 from src.application.agents.summarizer.summarizer_agent import SummarizerAgent
 from src.application.dto.summary_dto import SummaryDto
 from src.application.services.index_service import IndexService
+from src.domain.model.message_model import MessageModel
 
 
 class SummaryWorkflow:
@@ -15,7 +16,7 @@ class SummaryWorkflow:
         self,
         bot_id: int,
         topic: str,
-        messages: List[Message]
+        messages: List[MessageModel]
     ) -> List[SummaryDto]:
         """
         Starts the summary workflow.
@@ -34,7 +35,7 @@ class SummaryWorkflow:
 
         return sanitized_summaries
 
-    async def __parse_messages(self, topic: str, messages: List[Message]) -> List[Message]:
+    async def __parse_messages(self, topic: str, messages: List[MessageModel]) -> List[MessageModel]:
         """
         Extracts the appropriate messages by topic.
 
@@ -49,7 +50,7 @@ class SummaryWorkflow:
         return await parser_agent.execute(messages)
     
 
-    async def __summarize_messages(self, messages: List[Message]) -> List[SummaryDto]:
+    async def __summarize_messages(self, messages: List[MessageModel]) -> List[SummaryDto]:
         """
         Summarizes the messages, removing duplicates.
 

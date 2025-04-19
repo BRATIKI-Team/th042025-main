@@ -3,9 +3,9 @@ from typing import List
 
 from pydantic_ai import Agent
 
+from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import Config
 from src.application.agents.summarizer import system_prompt
-from src.application.agents.parser.parser_agent import Message
 from src.application.dto.summary_dto import SummaryDto
 
 class SummarizerAgent:
@@ -24,6 +24,6 @@ class SummarizerAgent:
             system_prompt=system_prompt,
         )
 
-    async def execute(self, messages: List[Message]) -> List[SummaryDto]:
+    async def execute(self, messages: List[MessageModel]) -> List[SummaryDto]:
         messages_json = [message.model_dump() for message in messages]
         return await self._agent.run(messages_json)
