@@ -1,17 +1,12 @@
-﻿from pydantic_ai import Agent, RunContext
-import asyncio
-from typing import List, Dict 
-from pydantic import BaseModel, Field
-    
+﻿from pydantic_ai import Agent
+from typing import List
+
 from pydantic_ai import Agent
 
 from src.infrastructure.config import Config
 from src.application.agents.summarizer import system_prompt
 
 from src.application.dto.summary_response import SummaryResponse
-
-
-
 
 
 class SummarizeAgent:
@@ -27,9 +22,8 @@ class SummarizeAgent:
             model=self.__llm_model_name,
             deps_type=List[str],
             output_type=List[SummaryResponse],
-            system_prompt=system_prompt
+            system_prompt=system_prompt,
         )
 
     async def execute(self, deps: List[str]) -> List[SummaryResponse]:
         return await self._agent.run(" ".join(deps), deps=deps)
-   

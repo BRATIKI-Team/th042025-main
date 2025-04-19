@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -15,4 +15,4 @@ class GroupedSourceModel(BaseModel):
     type: int
     sources: List[SourceInfo]
     last_hit_datetime: datetime
-    notification_period: int 
+    notification_period: int

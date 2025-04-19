@@ -16,15 +16,12 @@ class SanytizerAgent:
         summaries_to_sanitize: List[SummaryRequest],
         index_service: IndexService,
         api_key: str,
-        model_name: str
+        model_name: str,
     ):
         self.__bot_id = bot_id
         self.__summaries_to_sanitize = summaries_to_sanitize
         self.__index_service = index_service
-        self.__llm = OpenAI(
-            api_key=api_key, 
-            model=model_name
-        )
+        self.__llm = OpenAI(api_key=api_key, model=model_name)
         self.__agent = self.__create_agent()
 
     def __create_agent(self) -> FunctionAgent:
