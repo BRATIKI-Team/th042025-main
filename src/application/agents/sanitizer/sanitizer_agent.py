@@ -10,21 +10,20 @@ import json
 from src.application.dto.summary_dto import SummaryDto
 from src.application.services import IndexService
 from src.application.agents.sanitizer import system_prompt
+from src.infrastructure.config import Config
 
 
 class SanitizerAgent:
     def __init__(
         self,
-        bot_id: str,
+        bot_id: int,
         summaries_to_sanitize: List[SummaryDto],
         index_service: IndexService,
-        api_key: str,
-        model_name: str,
     ):
         self.__bot_id = bot_id
         self.__summaries_to_sanitize = summaries_to_sanitize
         self.__index_service = index_service
-        self.__llm = OpenAI(api_key=api_key, model=model_name)
+        self.__llm = OpenAI(api_key=Config.OPENAI_API_KEY, model=Config.OPENAI_MODEL_NAME)
         self.__agent = self.__create_agent()
 
     def __create_agent(self) -> FunctionAgent:
@@ -43,7 +42,7 @@ class SanitizerAgent:
         """
         Create a query engine tool for a summary.
         """
-        index = self.__index_service.get_index(self.__bot_id)
+        index = self.__index_service.get_index(str(self.__bot_id))
 
         retriever = VectorIndexRetriever(
             index=index,
