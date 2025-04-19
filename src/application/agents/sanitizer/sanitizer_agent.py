@@ -93,7 +93,7 @@ class SanitizerAgent:
 
         try:
             # Parse the JSON response
-            sanitized_summaries = json.loads(str(result.response.content))
+            sanitized_summaries = json.loads(str(result))
             print(f"---**Sanitizer Agent** | output | => {sanitized_summaries}", end="\n\n")
 
             # Convert JSON objects to SummaryDto objects
