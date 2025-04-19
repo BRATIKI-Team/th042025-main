@@ -1,6 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 
 class SummaryResponse(BaseModel):
     """Represents a user with personal details such as id, username, first name, last name, email, password, phone, and user status."""
-    tittle: str = Field(..., description="Заголовок новости", example="Роснефть объявила о выплате дивидендов")
-    text: str = Field(..., description="Текст нговости", example="Робособака с кроликом и миниганом — новое слово в домашней охране. Китайский энтузиаст создал необычный гибрид, где милый зверёк стал частью боевой системы. Теперь этот меха-заяц не только выглядит угрожающе, но и эффективно выполняет свою задачу, контролируя двор.")
+
+    tittle: str = Field(
+        ..., description="News title", example="Rosneft announced dividend payment"
+    )
+    text: str = Field(
+        ...,
+        description="News text",
+        example="A robotic dog with a rabbit and a minigun is a new word in home security. A Chinese enthusiast has created an unusual hybrid, where a cute animal has become part of the combat system. Now this mecha-hare not only looks threatening, but also effectively performs its task, monitoring the yard.",
+    )
