@@ -2,18 +2,16 @@ from pydantic import BaseModel, Field
 
 
 class SummaryDto(BaseModel):
-    """Represents a user with personal details such as id, username, first name, last name, email, password, phone, and user status."""
+    """Represents a summary with the title, content, and metadata."""
 
     title: str = Field(
-        ..., description="News title", example="Rosneft announced dividend payment"
+        ..., description="Title of the summary", example="Rosneft announced dividend payment"
     )
     content: str = Field(
-        ...,
-        description="News text",
-        example="A robotic dog with a rabbit and a minigun is a new word in home security. A Chinese enthusiast has created an unusual hybrid, where a cute animal has become part of the combat system. Now this mecha-hare not only looks threatening, but also effectively performs its task, monitoring the yard.",
+        ..., description="Main content of the summary, providing a concise overview"
     )
     metadata: dict = Field(
         ...,
-        description="Metadata",
+        description="Additional metadata related to the summary, such as the source",
         example={"source": "https://www.google.com"},
     )

@@ -6,10 +6,10 @@ import json
 
 from src.application.dto.summary_dto import SummaryDto
 from src.application.services import IndexService
-from src.application.agents.sanytizer import system_prompt
+from src.application.agents.sanitizer import system_prompt
 
 
-class SanytizerAgent:
+class SanitizerAgent:
     def __init__(
         self,
         bot_id: str,
@@ -56,7 +56,7 @@ class SanytizerAgent:
             summaries_to_sanitize: The summaries to sanitize.
 
         Returns:
-            The sanitized summaries as a list of SummaryRequest objects.
+            The sanitized summaries as a list of SummaryDto objects.
         """
         summaries = "\n".join(
             f"Summary {i + 1}:\n"
@@ -72,7 +72,7 @@ class SanytizerAgent:
             # Parse the JSON response
             sanitized_summaries = json.loads(str(result))
 
-            # Convert JSON objects to SummaryRequest objects
+            # Convert JSON objects to SummaryDto objects
             return [
                 SummaryDto(title=summary["title"], summary=summary["summary"])
                 for summary in sanitized_summaries
