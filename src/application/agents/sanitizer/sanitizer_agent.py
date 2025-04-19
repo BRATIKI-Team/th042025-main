@@ -2,6 +2,9 @@ from typing import List
 from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.core.tools import QueryEngineTool
 from llama_index.llms.openai import OpenAI
+from llama_index.core.retrievers import VectorIndexRetriever
+from llama_index.core.postprocessor import SimilarityPostprocessor
+from llama_index.core.query_engine import RetrieverQueryEngine
 import json
 
 from src.application.dto.summary_dto import SummaryDto
@@ -32,7 +35,7 @@ class SanitizerAgent:
             self.__create_query_engine_tool(summary)
             for summary in self.__summaries_to_sanitize
         ]
-        return FunctionAgent.from_tools(
+        return FunctionAgent(
             system_prompt=system_prompt, tools=tools, llm=self.__llm, verbose=True
         )
 
@@ -41,7 +44,18 @@ class SanitizerAgent:
         Create a query engine tool for a summary.
         """
         index = self.__index_service.get_index(self.__bot_id)
-        query_engine = index.as_query_engine()
+
+        retriever = VectorIndexRetriever(
+            index=index,
+            similarity_top_k=5,
+            verbose=True
+        )
+        
+        query_engine = RetrieverQueryEngine(
+            retriever=retriever,
+            node_postprocessors=[SimilarityPostprocessor(similarity_cutoff=0.7)]
+        )
+
         return QueryEngineTool.from_defaults(
             query_engine=query_engine,
             description=f"Provides information about possible existing summaries in db about - {summary.title}.",
@@ -58,15 +72,9 @@ class SanitizerAgent:
         Returns:
             The sanitized summaries as a list of SummaryDto objects.
         """
-        summaries = "\n".join(
-            f"Summary {i + 1}:\n"
-            f"Title: {summary.title}\n"
-            f"Content: {summary.summary}\n"
-            for i, summary in enumerate(self.__summaries_to_sanitize)
-        )
+        summaries_json = json.dumps([summary.model_dump() for summary in self.__summaries_to_sanitize]) 
 
-        result = await self.__agent.run(summaries)
-        print(str(result))
+        result = await self.__agent.run(summaries_json)
 
         try:
             # Parse the JSON response
@@ -74,7 +82,12 @@ class SanitizerAgent:
 
             # Convert JSON objects to SummaryDto objects
             return [
-                SummaryDto(title=summary["title"], summary=summary["summary"])
+                SummaryDto(
+                    title=summary["title"],
+                    content=summary["content"],
+                    metadata=summary["metadata"]
+                )
+
                 for summary in sanitized_summaries
             ]
         except json.JSONDecodeError as e:
