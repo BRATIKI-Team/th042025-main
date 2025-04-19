@@ -161,5 +161,9 @@ class GetSourceMessagesUsecase:
             parts = url.split("telegram.me/")
             if len(parts) > 1:
                 return parts[1].strip("/")
+        if "@" in url:
+            parts = url.split("@")
+            if len(parts) > 1:
+                return parts[1].strip("@")
 
         return ""

@@ -1,5 +1,6 @@
 from dishka import FromDishka, Provider, Scope, provide
 
+from src.application.services import index_service, IndexService
 from src.application.usecase.bot.delete_bot_usecase import DeleteBotUsecase
 from src.application.usecase.bot.get_my_bots_usecase import GetMyBotsUsecase
 from src.application.usecase.bot.is_token_unqiue_usecase import IsTokenUniqueUsecase
@@ -123,11 +124,13 @@ class UsecaseContainer(Provider):
         bot_repository: FromDishka[BotRepository],
         user_bot_repository: FromDishka[UserBotRepository],
         message_repository: FromDishka[MessageRepository],
+        index_service: FromDishka[IndexService],
     ) -> NotifyBotUsecase:
         return NotifyBotUsecase(
             bot_repository=bot_repository,
             user_bot_repository=user_bot_repository,
             message_repository=message_repository,
+            index_service=index_service,
         )
 
     @provide(scope=Scope.APP)

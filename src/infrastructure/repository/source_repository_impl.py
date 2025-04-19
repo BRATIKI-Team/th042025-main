@@ -49,7 +49,7 @@ class SourceRepositoryImpl(SourceRepository):
             SourceDAO.bot_id._.id,
             SourceDAO.bot_id._.notification_period,
             SourceDAO.bot_id._.last_notified_at,
-        )
+        ).where(SourceDAO.status == SourceStatus.ACCEPTED)
 
         # Group sources by type and url
         grouped_sources = {}

@@ -4,6 +4,8 @@ from datetime import datetime
 
 from aiogram import Bot
 
+from src.application.agents.summary_workflow import SummaryWorkflow
+from src.application.services import IndexService
 from src.domain.model.message_model import MessageModel
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.message_repository import MessageRepository
@@ -24,10 +26,12 @@ class NotifyBotUsecase:
         bot_repository: BotRepository,
         user_bot_repository: UserBotRepository,
         message_repository: MessageRepository,
+        index_service: IndexService,
     ):
         self._bot_repository = bot_repository
         self._user_bot_repository = user_bot_repository
         self._message_repository = message_repository
+        self._workflow = SummaryWorkflow(index_service=index_service)
 
     async def execute(self, bot_id: int) -> None:
         """
@@ -45,6 +49,9 @@ class NotifyBotUsecase:
         messages = await self._message_repository.read_by_bot_and_filter_by_created(
             bot.id, bot.last_notified_at
         )
+
+        summrizedMessages = await self._workflow.start_workflow(bot.id, bot.description.value, messages)
+
         # This could involve sending a message to a Telegram bot,
         # posting to a webhook, etc.
 
@@ -57,18 +64,17 @@ class NotifyBotUsecase:
         aiogram_bot = Bot(token=bot.token.value)
 
         try:
-            # Формируем сообщение для отправки
-            message_text = self._format_messages(messages)
+            for message in summrizedMessages:
+                message_text = message.title + "\n\n" + message.text
 
-            # Отправляем сообщение каждому пользователю
-            for user_id in user_ids:
-                try:
-                    await aiogram_bot.send_message(
-                        chat_id=user_id, text=message_text, parse_mode="HTML"
-                    )
-                    logger.info(f"Sent notification to user {user_id} for bot {bot_id}")
-                except Exception as e:
-                    logger.error(f"Failed to send message to user {user_id}: {str(e)}")
+                for user_id in user_ids:
+                    try:
+                        await aiogram_bot.send_message(
+                            chat_id=user_id, text=message_text, parse_mode="HTML"
+                        )
+                        logger.info(f"Sent notification to user {user_id} for bot {bot_id}")
+                    except Exception as e:
+                        logger.error(f"Failed to send message to user {user_id}: {str(e)}")
 
             # Обновляем время последнего уведомления
             await self._bot_repository.update_last_notified_at(bot_id, datetime.now())
@@ -79,24 +85,3 @@ class NotifyBotUsecase:
         finally:
             # Закрываем сессию бота
             await aiogram_bot.session.close()
-
-    def _format_messages(self, messages: List[MessageModel]) -> str:
-        """
-        Format messages for notification.
-
-        Args:
-            messages: List of messages to format
-
-        Returns:
-            str: Formatted message text
-        """
-        if not messages:
-            return "Нет новых сообщений"
-
-        result = "<b>Новые сообщения:</b>\n\n"
-
-        for i, msg in enumerate(messages, 1):
-            result += f"<b>{i}. {(msg.published_at if msg.published_at else datetime.now()).strftime('%d.%m.%Y %H:%M')}</b>\n"
-            result += f"{msg.content[:20]}\n\n"
-
-        return result
