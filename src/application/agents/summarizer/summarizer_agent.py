@@ -5,9 +5,8 @@ from pydantic_ai import Agent
 
 from src.infrastructure.config import Config
 from src.application.agents.summarizer import system_prompt
-
-from src.application.dto.summary_response import SummaryResponse
-
+from src.application.agents.parser.parser_agent import Message
+from src.application.dto.summary_dto import SummaryDto
 
 class SummarizeAgent:
     def __init__(self):
@@ -16,14 +15,15 @@ class SummarizeAgent:
 
     def __create_agent(self) -> Agent:
         """
-        Summirize scattered news, removing duplicates
+        Create an agent for summarizing scattered news, removing duplicates
         """
         return Agent(
             model=self.__llm_model_name,
             deps_type=List[str],
-            output_type=List[SummaryResponse],
+            output_type=List[SummaryDto],
             system_prompt=system_prompt,
         )
 
-    async def execute(self, deps: List[str]) -> List[SummaryResponse]:
-        return await self._agent.run(" ".join(deps), deps=deps)
+    async def execute(self, messages: List[Message]) -> List[SummaryDto]:
+        messages_json = [message.model_dump() for message in messages]
+        return await self._agent.run(messages_json)
