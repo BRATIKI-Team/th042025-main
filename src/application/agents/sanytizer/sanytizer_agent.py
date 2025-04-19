@@ -4,7 +4,7 @@ from llama_index.core.tools import QueryEngineTool
 from llama_index.llms.openai import OpenAI
 import json
 
-from src.application.dto.summary_request import SummaryRequest
+from src.application.dto.summary_dto import SummaryDto
 from src.application.services import IndexService
 from src.application.agents.sanytizer import system_prompt
 
@@ -13,7 +13,7 @@ class SanytizerAgent:
     def __init__(
         self,
         bot_id: str,
-        summaries_to_sanitize: List[SummaryRequest],
+        summaries_to_sanitize: List[SummaryDto],
         index_service: IndexService,
         api_key: str,
         model_name: str,
@@ -36,7 +36,7 @@ class SanytizerAgent:
             system_prompt=system_prompt, tools=tools, llm=self.__llm, verbose=True
         )
 
-    def __create_query_engine_tool(self, summary: SummaryRequest) -> QueryEngineTool:
+    def __create_query_engine_tool(self, summary: SummaryDto) -> QueryEngineTool:
         """
         Create a query engine tool for a summary.
         """
@@ -47,7 +47,7 @@ class SanytizerAgent:
             description=f"Provides information about possible existing summaries in db about - {summary.title}.",
         )
 
-    async def execute(self) -> List[SummaryRequest]:
+    async def execute(self) -> List[SummaryDto]:
         """
         Sanitizes the summaries of a bot.
 
@@ -74,7 +74,7 @@ class SanytizerAgent:
 
             # Convert JSON objects to SummaryRequest objects
             return [
-                SummaryRequest(title=summary["title"], summary=summary["summary"])
+                SummaryDto(title=summary["title"], summary=summary["summary"])
                 for summary in sanitized_summaries
             ]
         except json.JSONDecodeError as e:
