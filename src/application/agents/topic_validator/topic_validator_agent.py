@@ -20,8 +20,7 @@ class TopicValidatorAgent:
             tools=[],  # No external tools needed for validation
             deps_type=str,
             output_type=bool,
-            system_prompt=system_prompt,
-            retries=3,  # Fewer retries as validation is simpler
+            system_prompt=system_prompt
         )
 
     async def execute(self, topic) -> bool:
