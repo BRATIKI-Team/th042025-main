@@ -40,6 +40,10 @@ class Config(BaseSettings):
     OPENAI_API_KEY: SecretStr
     OPENAI_MODEL_NAME: str = "gpt-4o-mini"
 
+    # Logs
+    LOGS_FILES_PATH: str = "logs"
+    LOGS_BACKUP_COUNT: int = 7
+
     model_config = SettingsConfigDict(env_file=".env")
 
 

@@ -4,6 +4,7 @@ from dishka.integrations.aiogram import AiogramProvider, setup_dishka
 
 from src.di.container import init_container
 from src.infrastructure.config import config
+from src.infrastructure.log.logger import setup_logger
 from src.presentation.telegram_bot.command.start_command import (
     router as start_command_router,
 )
@@ -19,6 +20,8 @@ from src.presentation.telegram_bot.screen.menu_screen import (
 
 
 async def main() -> None:
+    setup_logger()
+
     bot = Bot(token=config.TELEGRAM_TOKEN.get_secret_value())
     dp = Dispatcher()
 
