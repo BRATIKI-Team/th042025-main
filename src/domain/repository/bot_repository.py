@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
+from src.domain.model.pagination_model import PaginationModel
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
 from src.domain.model.bot_model import BotModel
 from src.domain.value_object.bot_name_vo import BotNameVO
@@ -48,3 +49,9 @@ class BotRepository(ABC):
             bot_id: The ID of the bot to update
             last_notified_at: The new timestamp
         """
+
+    @abstractmethod
+    async def get_my_bots(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginationModel[BotModel]:
+        pass

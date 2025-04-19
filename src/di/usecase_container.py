@@ -1,5 +1,6 @@
 from dishka import FromDishka, Provider, Scope, provide
 
+from src.application.usecase.bot.get_my_bots_usecase import GetMyBotsUsecase
 from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
 from src.application.usecase.get_grouped_sources_usecase import GetGroupedSourcesUsecase
 from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
@@ -142,3 +143,9 @@ class UsecaseContainer(Provider):
         self, source_repository: FromDishka[SourceRepository]
     ) -> RejectSourceUsecase:
         return RejectSourceUsecase(source_repository=source_repository)
+
+    @provide(scope=Scope.APP)
+    def get_my_bots_usecase(
+        self, bot_repository: FromDishka[BotRepository]
+    ) -> GetMyBotsUsecase:
+        return GetMyBotsUsecase(bot_repository=bot_repository)

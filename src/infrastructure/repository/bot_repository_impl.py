@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Optional
 
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
+from src.domain.enum.bot_status_enum import BotStatus
 from src.domain.model.bot_model import BotModel
+from src.domain.model.pagination_model import PaginationModel
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
 from src.domain.value_object.bot_name_vo import BotNameVO
@@ -30,6 +32,7 @@ class BotRepositoryImpl(BotRepository):
             description=description.value,
             token=token.value,
             notification_period=period.value,
+            status=BotStatus.ACTIVE.value,
         )
 
         return dao.id
@@ -49,15 +52,7 @@ class BotRepositoryImpl(BotRepository):
         if dao is None:
             return None
 
-        return BotModel(
-            id=dao.id,
-            user_id=dao.user_id,
-            title=BotNameVO(value=dao.title),
-            description=BotDescriptionVO(value=dao.description),
-            token=BotTokenVO(value=dao.token),
-            notification_period=BotNotificationPeriod(dao.notification_period),
-            last_notified_at=dao.last_notified_at,
-        )
+        return BotDAO.from_dao(dao)
 
     async def update_last_notified_at(
         self, bot_id: int, last_notified_at: datetime
@@ -71,4 +66,24 @@ class BotRepositoryImpl(BotRepository):
         """
         await BotDAO.update({BotDAO.last_notified_at: last_notified_at}).where(
             BotDAO.id == bot_id
+        )
+
+    async def get_my_bots(
+        self, user_id: int, page: int, page_size: int
+    ) -> PaginationModel[BotModel]:
+        query: list[BotDAO] = (
+            await BotDAO.objects()
+            .where(BotDAO.user_id == user_id)
+            .offset((page - 1) * page_size)
+            .limit(page_size + 1)
+        )
+
+        models = [BotDAO.from_dao(dao) for dao in query]
+        has_more = len(models) > page_size
+
+        return PaginationModel(
+            items=models[:page_size],
+            has_more=has_more,
+            page=page,
+            page_size=page_size,
         )

@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
+from src.domain.enum.bot_status_enum import BotStatus
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
 from src.domain.value_object.bot_name_vo import BotNameVO
 from src.domain.value_object.bot_token_vo import BotTokenVO
@@ -20,6 +21,7 @@ class BotModel:
         description: BotDescriptionVO,
         notification_period: BotNotificationPeriod,
         token: BotTokenVO,
+        status: BotStatus,
         last_notified_at: Optional[datetime] = None,
     ):
         self.id = id
@@ -29,3 +31,4 @@ class BotModel:
         self.description = description
         self.notification_period = notification_period
         self.last_notified_at = last_notified_at
+        self.status = status
