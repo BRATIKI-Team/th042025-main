@@ -1,20 +1,21 @@
 from dishka import FromDishka, Provider, Scope, provide
 
-from src.application.usecase.create_bot_usecase import CreateBotUsecase
 from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
 from src.application.usecase.get_grouped_sources_usecase import GetGroupedSourcesUsecase
-from src.application.usecase.get_pending_source_usecase import GetPendingSourceUsecase
 from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
-from src.application.usecase.has_bot_usecase import HasBotUsecase
 from src.application.usecase.notify_bot_usecase import NotifyBotUsecase
 from src.application.usecase.update_bot_last_notified_usecase import UpdateBotLastNotifiedUsecase
-from src.application.usecase.telegram_download_media_usecase import (
+from src.application.usecase.bot.create_bot_usecase import CreateBotUsecase
+from src.application.usecase.source.get_pending_source_usecase import GetPendingSourceUsecase
+from src.application.usecase.bot.has_bot_usecase import HasBotUsecase
+from src.application.usecase.source.validate_topic_usecase import ValidateTopicUsecase
+from src.application.usecase.tg.telegram_download_media_usecase import (
     TelegramDownloadMediaUsecase,
 )
-from src.application.usecase.telegram_get_channel_info_usecase import (
+from src.application.usecase.tg.telegram_get_channel_info_usecase import (
     TelegramGetChannelInfoUsecase,
 )
-from src.application.usecase.telegram_get_messages_usecase import (
+from src.application.usecase.tg.telegram_get_messages_usecase import (
     TelegramGetMessagesUsecase,
 )
 from src.domain.repository.bot_repository import BotRepository
@@ -82,7 +83,7 @@ class UsecaseContainer(Provider):
     ) -> CreateBotUsecase:
         return CreateBotUsecase(
             bot_repository=bot_repository, user_repository=user_repository
-            self, bot_repository: FromDishka[BotRepository]
+        )
 
     @provide(scope=Scope.APP)
     def get_bot_by_id_usecase(
@@ -106,3 +107,10 @@ class UsecaseContainer(Provider):
             get_bot_by_id_usecase=get_bot_by_id_usecase,
             update_bot_last_notified_usecase=update_bot_last_notified_usecase
         )
+
+    @provide(scope=Scope.APP)
+    def validate_topic_usecase(
+        self, source_repository: FromDishka[SourceRepository]
+    ) -> ValidateTopicUsecase:
+        return ValidateTopicUsecase(source_repository=source_repository)
+

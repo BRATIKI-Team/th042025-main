@@ -1,5 +1,6 @@
 from dishka import FromDishka, Provider, Scope, provide
 
+from src.application.agents.topic_validator.topic_validator_agent import TopicValidatorAgent
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.chroma_repository import ChromaRepository
 from src.domain.repository.message_repository import MessageRepository
@@ -7,8 +8,8 @@ from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.telegram_repository import TelegramRepository
 from src.domain.repository.user_repository import UserRepository
 from src.infrastructure.repository.bot_repository_impl import BotRepositoryImpl
-from src.infrastructure.repository.chroma_repository_iml import ChromaRepositoryImpl
 from src.infrastructure.repository.message_repository_impl import MessageRepositoryImpl
+from src.infrastructure.repository.chroma_repository_impl import ChromaRepositoryImpl
 from src.infrastructure.repository.source_repository_impl import SourceRepositoryImpl
 from src.infrastructure.repository.telegram_repository_impl import (
     TelegramRepositoryImpl,
@@ -24,8 +25,10 @@ class RepositoryContainer(Provider):
         return BotRepositoryImpl()
 
     @provide(scope=Scope.APP)
-    def source_repository(self) -> SourceRepository:
-        return SourceRepositoryImpl()
+    def source_repository(
+        self, validate_topic_agent: FromDishka[TopicValidatorAgent]
+    ) -> SourceRepository:
+        return SourceRepositoryImpl(validate_topic_agent=validate_topic_agent)
 
     @provide(scope=Scope.APP)
     def message_repository(self) -> MessageRepository:

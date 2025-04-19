@@ -24,4 +24,7 @@ class SourceRepository(ABC):
         """
         Update the last_hit_datetime for the given source IDs to the current time.
         """
+
+    @abstractmethod
+    async def validate_topic(self, topic: str) -> bool:
         pass
