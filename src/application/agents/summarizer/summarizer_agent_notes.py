@@ -1,8 +1,8 @@
 ﻿from pydantic_ai import Agent
 import asyncio
-from typing import List, Dict  # Добавляем необходимые импорты
+from typing import List, Dict, cast  # Добавляем необходимые импорты
 from pydantic import BaseModel, Field
-
+from pydantic_ai.agent import AgentRunResult
 
 news = [
     "3. Робособака с кроликом и миниганом — новое слово в домашней охране. Китайский энтузиаст создал необычный гибрид, где милый зверёк стал частью боевой системы. Теперь этот меха-заяц не только выглядит угрожающе, но и эффективно выполняет свою задачу, контролируя двор.",
@@ -95,13 +95,13 @@ class SummarizeAgent:
             system_prompt="Ты ассистент который получает список новостей, переписывает их и ОБЪЕДИНЯЕТ ПОХОЖИТЕ В ОДНУ. ТВОЙ ОТВЕТ: JSON с полями tittle и text. Объедини повторяющиеся новости в одну, НЕ УПУСТИВ НИ ОДНОЙ ПОДРОБНОСТИ. Придумай оригинальный заголовок к каждой и сам опиши новость, НИЧЕГО НЕ ДОДУМЫВАЙ, ОПИРАЙСЯ только на информацию из новости",
         )
 
-    async def run(self, deps: List[str]) -> List[SummaryResponse]:
+    async def run(self, deps: List[str]) -> AgentRunResult[List[SummaryResponse]]:
         return await self._agent.run(" ".join(deps), deps=deps)
 
 
 cl = SummarizeAgent()
 
-result = asyncio.run(cl.run(news)).output
+result = cast(AgentRunResult[List[SummaryResponse]], asyncio.run(cl.run(news))).output
 
 for idx, user in enumerate(result, 1):
     print(f"Элемент #{idx}")
