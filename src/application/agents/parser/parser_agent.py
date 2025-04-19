@@ -1,17 +1,21 @@
 import json
 from typing import List
 from pydantic_ai import Agent
+from pydantic_ai.models import OpenAIModel
 
 from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import config
-from src.application.agents.parser import system_prompt
+from .prompts import system_prompt
 
 
 
 class ParserAgent:
     def __init__(self, topic: str):
-        self.__llm_model_name = config.OPENAI_MODEL_NAME
         self.__topic = topic
+        self.__llm = OpenAIModel(
+            model_name=config.OPENAI_MODEL_NAME,
+            api_key=config.OPENAI_API_KEY.get_secret_value()
+        )
         self.__agent = self.__create_agent()
 
     def __create_agent(self) -> Agent:
@@ -23,7 +27,7 @@ class ParserAgent:
 
         print(f"---**Parser Agent** | system_prompt | => {system_prompt_formatted}", end="\n\n")
         return Agent(
-            model=self.__llm_model_name,
+            model=self.__llm,
             tools=[],
             deps_type=str,
             output_type=List[MessageModel],
