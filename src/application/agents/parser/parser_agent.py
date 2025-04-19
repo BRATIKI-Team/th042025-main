@@ -60,12 +60,7 @@ class ParserAgent:
         try:
             output_messages = []
             for message_data in result.output:
-                # Convert ISO format strings back to datetime objects
-                if 'created_at' in message_data:
-                    message_data['created_at'] = datetime.fromisoformat(message_data['created_at'])
-                if 'published_at' in message_data and message_data['published_at']:
-                    message_data['published_at'] = datetime.fromisoformat(message_data['published_at'])
-                output_messages.append(MessageModel(**message_data))
+                output_messages.append(message_data)
             
             print(f"---**Parser Agent** | output | => {output_messages}", end="\n\n")
             return output_messages

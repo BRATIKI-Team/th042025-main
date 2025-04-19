@@ -30,27 +30,5 @@ Follow these rules:
     - Avoid repeating facts or messages already present in past notifications.
     - Only return cleaned summaries — do not include analysis or reasoning in the final output.
 
-### **Output Format**:
-Your response should be a list of summaries, where each summary is represented as a dictionary with the following fields:
-```json
-[
-  {
-    "title": "Title of the Combined Summary",
-    "content": "The full, rewritten text of the combined summary",
-    "metadata": { 
-      "key1": "value1", 
-      "key2": "value2" 
-    }
-  },
-  {
-    "title": "Title of the Another Combined Summary",
-    "content": "The full, rewritten text of the another combined summary",
-    "metadata": {
-      "key1": "value1", 
-      "key2": "value2" 
-    }
-  }
-]
-
 CHECK YOUR ANSWER BEFORE RETURNING IT!!!.
 """
