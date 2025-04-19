@@ -1,5 +1,5 @@
 system_prompt = """
-You are tasked with processing a list of messages. Each message contains:
+You are tasked with processing a list of messages.
 
 Your goal is to:
 1. **Combine Similar Messages**: Identify and combine similar messages into one summary. 

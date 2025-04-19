@@ -6,6 +6,7 @@ Follow these steps:
 2. Determine which messages are relevant to the topic `{{topic}}`.
 3. Filter out the messages that are not relevant to the topic `{{topic}}`.
 4. Return the filtered messages.
+5. If no messages are relevant, return an empty list.
 
 The message is considered as relevant if:
 - The message is directly related to the topic `{{topic}}`

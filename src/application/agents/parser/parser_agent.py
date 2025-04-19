@@ -3,17 +3,10 @@ from typing import Any, Dict, List
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 
+from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import Config
 from src.application.agents.parser import system_prompt
 
-
-# TODO: use MessageDao when will be ready
-class Message(BaseModel):
-    content: str = Field(..., description="The text content of the message")
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional metadata about the message (e.g., timestamp, author, etc.)",
-    )
 
 
 class ParserAgent:
@@ -28,11 +21,11 @@ class ParserAgent:
             model=self.__llm_model_name,
             tools=[],
             deps_type=str,
-            output_type=List[Message],
+            output_type=List[MessageModel],
             system_prompt=system_prompt_formatted,
         )
 
-    async def execute(self, messages: List[Message]) -> List[Message]:
+    async def execute(self, messages: List[MessageModel]) -> List[MessageModel]:
         messages_json = json.dumps(
             [message.model_dump() for message in messages]
         )
