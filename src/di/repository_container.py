@@ -10,6 +10,7 @@ from src.domain.repository.message_repository import MessageRepository
 from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.telegram_repository import TelegramRepository
 from src.domain.repository.user_repository import UserRepository
+from src.domain.repository.user_bot_repository import UserBotRepository
 from src.infrastructure.repository.bot_repository_impl import BotRepositoryImpl
 from src.infrastructure.repository.message_repository_impl import MessageRepositoryImpl
 from src.infrastructure.repository.chroma_repository_impl import ChromaRepositoryImpl
@@ -18,6 +19,7 @@ from src.infrastructure.repository.telegram_repository_impl import (
     TelegramRepositoryImpl,
 )
 from src.infrastructure.repository.user_repository_impl import UserRepositoryImpl
+from src.infrastructure.repository.user_bot_repository_impl import UserBotRepositoryImpl
 from src.infrastructure.tg.telegram_client import TelegramClient
 from src.infrastructure.config import config
 
@@ -59,3 +61,7 @@ class RepositoryContainer(Provider):
     @provide(scope=Scope.APP)
     def user_repository(self) -> UserRepository:
         return UserRepositoryImpl()
+
+    @provide(scope=Scope.APP)
+    def user_bot_repository(self) -> UserBotRepository:
+        return UserBotRepositoryImpl()

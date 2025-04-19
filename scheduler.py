@@ -46,7 +46,6 @@ async def process_source_group(
         # Get bots for each source in the group
         for source in grouped_source.sources:
             # Get bots associated with this source
-            print(source)
             if source.bot_last_notified_at is None or (now - source.bot_last_notified_at) >= timedelta(seconds=source.bot_notification_period):
                 bots_to_notify.append(source.bot_id)
 
@@ -59,6 +58,7 @@ async def process_source_group(
             
     except Exception as e:
         logger.error(f"Error processing source group {grouped_source.url}: {str(e)}")
+        raise e
 
 
 async def setup_scheduler():

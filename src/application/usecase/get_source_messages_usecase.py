@@ -144,6 +144,7 @@ class GetSourceMessagesUsecase:
 
         except Exception as e:
             logger.error(f"Error getting Telegram messages: {str(e)}")
+            raise e
             return []
 
     def _extract_telegram_channel_username(self, url: str) -> str:

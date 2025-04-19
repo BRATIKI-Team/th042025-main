@@ -1,13 +1,17 @@
 from typing import List
+import logging
 from datetime import datetime
 
-from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
-from src.application.usecase.update_bot_last_notified_usecase import (
-    UpdateBotLastNotifiedUsecase,
-)
+from aiogram import Bot
+
 from src.domain.model.message_model import MessageModel
-from src.domain.repository import BotRepository
+from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.message_repository import MessageRepository
+from src.domain.repository.user_bot_repository import UserBotRepository
+from src.infrastructure.config import config
+
+
+logger = logging.getLogger(__name__)
 
 
 class NotifyBotUsecase:
@@ -16,11 +20,13 @@ class NotifyBotUsecase:
     """
 
     def __init__(
-            self,
-            bot_repository: BotRepository,
-            message_repository: MessageRepository,
+        self, 
+        bot_repository: BotRepository,
+        user_bot_repository: UserBotRepository,
+        message_repository: MessageRepository
     ):
         self._bot_repository = bot_repository
+        self._user_bot_repository = user_bot_repository
         self._message_repository = message_repository
 
     async def execute(self, bot_id: int) -> None:
@@ -40,10 +46,57 @@ class NotifyBotUsecase:
         # This could involve sending a message to a Telegram bot,
         # posting to a webhook, etc.
 
-        # For now, just print the messages
-        print(f"Notifying bot {bot_id} about {len(messages)} messages:")
-        for message in messages:
-            print(f"  - {message.content[:50]}...")
-
-        # Update the bot's last_notified_at
-        await self._bot_repository.update_last_notified_at(bot_id, datetime.now())
+        # Получаем список пользователей для этого бота
+        user_ids = await self._user_bot_repository.get_users_by_bot_id(bot_id)
+        if not user_ids:
+            logger.warning(f"No users found for bot {bot_id}")
+            return
+            
+        aiogram_bot = Bot(token=bot.token.value)
+        
+        try:
+            # Формируем сообщение для отправки
+            message_text = self._format_messages(messages)
+            
+            # Отправляем сообщение каждому пользователю
+            for user_id in user_ids:
+                try:
+                    await aiogram_bot.send_message(
+                        chat_id=user_id,
+                        text=message_text,
+                        parse_mode="HTML"
+                    )
+                    logger.info(f"Sent notification to user {user_id} for bot {bot_id}")
+                except Exception as e:
+                    logger.error(f"Failed to send message to user {user_id}: {str(e)}")
+            
+            # Обновляем время последнего уведомления
+            await self._bot_repository.update_last_notified_at(bot_id, datetime.now())
+            
+        except Exception as e:
+            logger.error(f"Error in notify_bot_usecase: {str(e)}")
+            raise e
+        finally:
+            # Закрываем сессию бота
+            await aiogram_bot.session.close()
+    
+    def _format_messages(self, messages: List[MessageModel]) -> str:
+        """
+        Format messages for notification.
+        
+        Args:
+            messages: List of messages to format
+            
+        Returns:
+            str: Formatted message text
+        """
+        if not messages:
+            return "Нет новых сообщений"
+            
+        result = "<b>Новые сообщения:</b>\n\n"
+        
+        for i, msg in enumerate(messages, 1):
+            result += f"<b>{i}. {msg.published_at.strftime('%d.%m.%Y %H:%M')}</b>\n"
+            result += f"{msg.content[:20]}\n\n"
+            
+        return result

@@ -1,3 +1,3 @@
-from .summary_request import SummaryRequest
+from src.application.dto.summary_dto import SummaryDto
 
-__all__ = ["SummaryRequest"]
+__all__ = ["SummaryDto"]

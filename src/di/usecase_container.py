@@ -30,6 +30,7 @@ from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.message_repository import MessageRepository
 from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.telegram_repository import TelegramRepository
+from src.domain.repository.user_bot_repository import UserBotRepository
 from src.domain.repository.user_repository import UserRepository
 
 
@@ -109,10 +110,12 @@ class UsecaseContainer(Provider):
     def notify_bot_usecase(
         self,
         bot_repository: FromDishka[BotRepository],
+        user_bot_repository: FromDishka[UserBotRepository],
         message_repository: FromDishka[MessageRepository],
     ) -> NotifyBotUsecase:
         return NotifyBotUsecase(
             bot_repository=bot_repository,
+            user_bot_repository=user_bot_repository,
             message_repository=message_repository,
         )
 
