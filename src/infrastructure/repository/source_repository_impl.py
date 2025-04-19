@@ -8,6 +8,7 @@ from src.application.agents.topic_validator.topic_validator_agent import (
 from src.domain.enum.source_status_enum import SourceStatus
 from src.domain.enum.source_type_enum import SourceType
 from src.domain.model.grouped_source_model import GroupedSourceModel
+from src.domain.model.pagination_model import PaginationModel
 from src.domain.model.source_model import SourceModel
 from src.domain.repository.source_repository import SourceRepository
 from src.infrastructure.dao.source_dao import SourceDAO
@@ -146,4 +147,36 @@ class SourceRepositoryImpl(SourceRepository):
     async def change_status(self, id: int, status: SourceStatus) -> None:
         await SourceDAO.update({SourceDAO.status: status.value}).where(
             SourceDAO.id == id
+        )
+
+    async def has_rejected_source(self, bot_id: int) -> bool:
+        return await SourceDAO.exists().where(
+            (SourceDAO.status == SourceStatus.REJECTED.value)
+            & (SourceDAO.bot_id == bot_id)
+        )
+
+    async def has_accepted_source(self, bot_id: int) -> bool:
+        return await SourceDAO.exists().where(
+            (SourceDAO.status == SourceStatus.ACCEPTED.value)
+            & (SourceDAO.bot_id == bot_id)
+        )
+
+    async def get_bot_sources(
+        self, bot_id: int, status: SourceStatus, page: int, page_size: int
+    ) -> PaginationModel[SourceModel]:
+        query = (
+            await SourceDAO.objects()
+            .where((SourceDAO.bot_id == bot_id) & (SourceDAO.status == status.value))
+            .offset((page - 1) * page_size)
+            .limit(page_size + 1)
+        )
+
+        models = [SourceDAO.from_dao(dao) for dao in query]
+        has_more = len(models) > page_size
+
+        return PaginationModel(
+            items=models[:page_size],
+            has_more=has_more,
+            page=page,
+            page_size=page_size,
         )

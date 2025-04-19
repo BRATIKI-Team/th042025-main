@@ -10,6 +10,13 @@ from src.application.usecase.get_grouped_sources_usecase import GetGroupedSource
 from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
 from src.application.usecase.notify_bot_usecase import NotifyBotUsecase
 from src.application.usecase.source.accept_source_usecase import AcceptSourceUsecase
+from src.application.usecase.source.get_bot_sources_usecase import GetBotSourcesUsecase
+from src.application.usecase.source.has_accepted_source_usecase import (
+    HasAcceptedSourceUsecase,
+)
+from src.application.usecase.source.has_rejected_source_usecase import (
+    HasRejectedSourceUsecase,
+)
 from src.application.usecase.source.reject_source_usecase import RejectSourceUsecase
 from src.application.usecase.source.search_sources_usecase import SearchSourcesUsecase
 from src.application.usecase.update_bot_last_notified_usecase import (
@@ -180,3 +187,25 @@ class UsecaseContainer(Provider):
         self, bot_repository: FromDishka[BotRepository]
     ) -> StopBotUsecase:
         return StopBotUsecase(bot_repository=bot_repository)
+
+    @provide(scope=Scope.APP)
+    def has_rejected_source_usecase(
+        self, source_repository: FromDishka[SourceRepository]
+    ) -> HasRejectedSourceUsecase:
+        return HasRejectedSourceUsecase(source_repository=source_repository)
+
+    @provide(scope=Scope.APP)
+    def get_bot_sources_usecase(
+        self,
+        source_repository: FromDishka[SourceRepository],
+        bot_repository: FromDishka[BotRepository],
+    ) -> GetBotSourcesUsecase:
+        return GetBotSourcesUsecase(
+            source_repository=source_repository, bot_repository=bot_repository
+        )
+
+    @provide(scope=Scope.APP)
+    def has_accepted_source_usecase(
+        self, source_repository: FromDishka[SourceRepository]
+    ) -> HasAcceptedSourceUsecase:
+        return HasAcceptedSourceUsecase(source_repository=source_repository)

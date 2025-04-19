@@ -17,6 +17,9 @@ from src.presentation.telegram_bot.screen.manage_bot_screen import (
 from src.presentation.telegram_bot.screen.menu_screen import (
     router as menu_screen_router,
 )
+from src.presentation.telegram_bot.screen.manage_source_screen import (
+    router as manage_source_screen_router,
+)
 
 
 async def main() -> None:
@@ -32,6 +35,7 @@ async def main() -> None:
     dp.include_router(menu_screen_router)
     dp.include_router(create_bot_screen_router)
     dp.include_router(manage_bot_screen_router)
+    dp.include_router(manage_source_screen_router)
 
     container = init_container(specific_providers=[AiogramProvider()])
 

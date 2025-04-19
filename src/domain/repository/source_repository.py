@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from src.domain.enum.source_status_enum import SourceStatus
+from src.domain.model.pagination_model import PaginationModel
 from src.domain.model.source_model import SourceModel
 from src.domain.model.grouped_source_model import GroupedSourceModel
 
@@ -38,4 +39,18 @@ class SourceRepository(ABC):
 
     @abstractmethod
     async def change_status(self, id: int, status: SourceStatus) -> None:
+        pass
+
+    @abstractmethod
+    async def has_rejected_source(self, bot_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    async def has_accepted_source(self, bot_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    async def get_bot_sources(
+        self, bot_id: int, status: SourceStatus, page: int, page_size: int
+    ) -> PaginationModel[SourceModel]:
         pass
