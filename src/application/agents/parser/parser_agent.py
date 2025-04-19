@@ -34,7 +34,7 @@ class ParserAgent:
             model=self.__llm,
             tools=[],
             deps_type=str,
-            output_type=List[MessageModel],
+            output_type=List[str],
             system_prompt=system_prompt_formatted,
         )
 
@@ -58,14 +58,15 @@ class ParserAgent:
 
         print(f"---**Parser Agent** | input | => {messages_json}", end="\n\n")
         result = await self.__agent.run(messages_json)
+        print(f"---**Parser Agent** | output | => {result}", end="\n\n")
 
-        # Deserialize output messages
         try:
-            output_messages = []
-            for message_data in result.output:
-                output_messages.append(message_data)
+            output_messages = [
+                message for message in messages
+                if str(message.id) in result.output
+            ]
 
-            print(f"---**Parser Agent** | output | => {output_messages}", end="\n\n")
+            print(f"---**Parser Agent** | output messages | => {output_messages}", end="\n\n")
             return output_messages
         except Exception as e:
             print(
