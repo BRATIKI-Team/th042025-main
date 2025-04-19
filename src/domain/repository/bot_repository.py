@@ -72,3 +72,7 @@ class BotRepository(ABC):
     @abstractmethod
     async def delete_bot(self, bot_id: int) -> None:
         pass
+
+    @abstractmethod
+    async def get_all_bots(self) -> List[BotModel]:
+        pass

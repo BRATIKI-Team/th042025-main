@@ -192,3 +192,8 @@ class SourceRepositoryImpl(SourceRepository):
             page=page,
             page_size=page_size,
         )
+
+    async def get_by_bot_id(self, bot_id: int) -> List[SourceModel]:
+        daos = await SourceDAO.objects().where(SourceDAO.bot_id == bot_id)
+
+        return [SourceDAO.from_dao(dao) for dao in daos]

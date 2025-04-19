@@ -106,3 +106,8 @@ class BotRepositoryImpl(BotRepository):
 
     async def delete_bot(self, bot_id: int) -> None:
         await BotDAO.delete().where(BotDAO.id == bot_id)
+
+    async def get_all_bots(self) -> List[BotModel]:
+        daos = await BotDAO.objects()
+
+        return [BotDAO.from_dao(dao) for dao in daos]
