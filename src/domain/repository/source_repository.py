@@ -8,7 +8,9 @@ from src.domain.model.grouped_source_model import GroupedSourceModel
 
 class SourceRepository(ABC):
     @abstractmethod
-    async def get_source_by_status(self, status: SourceStatus) -> SourceModel | None:
+    async def get_source_by_status(
+        self, bot_id: int, status: SourceStatus
+    ) -> SourceModel | None:
         pass
 
     @abstractmethod

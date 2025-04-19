@@ -22,8 +22,14 @@ class SourceRepositoryImpl(SourceRepository):
         self.__validate_topic_agent = validate_topic_agent
         self.__search_sources_agent = search_sources_agent
 
-    async def get_source_by_status(self, status: SourceStatus) -> SourceModel | None:
-        dao = await SourceDAO.objects().get(SourceDAO.status == status.value).first()
+    async def get_source_by_status(
+        self, bot_id: int, status: SourceStatus
+    ) -> SourceModel | None:
+        dao = (
+            await SourceDAO.objects()
+            .get((SourceDAO.status == status.value) & (SourceDAO.bot_id == bot_id))
+            .first()
+        )
 
         if dao is None:
             return None

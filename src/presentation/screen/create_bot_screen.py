@@ -186,7 +186,6 @@ async def bot_token_handler(
 async def select_sources_handler(
     callback_query: CallbackQuery,
     state: FSMContext,
-    bot: Bot,
     get_pending_source_usecase: FromDishka[GetPendingSourceUsecase],
     search_sources_usecase: FromDishka[SearchSourcesUsecase],
 ) -> None:
@@ -195,17 +194,18 @@ async def select_sources_handler(
         bool, await state.get_value("approved_at_least_one_source")
     )
 
-    pending_source = await get_pending_source_usecase.execute()
+    pending_source = await get_pending_source_usecase.execute(bot_id=bot_id)
 
     if pending_source is None:
         await search_sources_usecase.execute(bot_id=bot_id)
 
-        pending_source = await get_pending_source_usecase.execute()
+        pending_source = await get_pending_source_usecase.execute(bot_id=bot_id)
 
     if pending_source is None:
-        await bot.send_message(
-            text="Нет доступных источников данных. Попробуйте позже.",
-            chat_id=callback_query.message.chat.id,
+        text = "Шаг 5/5\n\n" "Нет доступных источников данных. Попробуйте позже."
+
+        await callback_query.message.edit_text(
+            text=text,
             reply_markup=select_sources_kb(
                 text="Обновить список источников",
                 can_stop_searching=approved_at_least_one_source,
@@ -215,14 +215,14 @@ async def select_sources_handler(
         return
 
     text = (
+        f"Шаг 5/5\n\n"
         f"Источник данных: {pending_source.name}\n\n"
         f"Описание: {pending_source.description}\n\n"
         f"Ссылка: {pending_source.url}\n\n"
     )
 
-    await bot.send_message(
+    await callback_query.message.edit_text(
         text=text,
-        chat_id=callback_query.message.chat.id,
         reply_markup=source_kb(
             source_id=pending_source.id, can_stop_searching=approved_at_least_one_source
         ),
@@ -241,8 +241,13 @@ async def accept_source_handler(
 
     await state.update_data(approved_at_least_one_source=True)
 
+    text = (
+        "Шаг 5/5\n\n"
+        "Источник данных принят. Вы можете принять ещё один источник или остановить поиск."
+    )
+
     await callback_query.message.edit_text(
-        text="Источник данных принят. Вы можете принять ещё один источник или остановить поиск.",
+        text=text,
         reply_markup=select_sources_kb(
             text="Продолжить выбор источников", can_stop_searching=True
         ),
@@ -263,8 +268,14 @@ async def reject_source_handler(
         bool, await state.get_value("approved_at_least_one_source")
     )
 
+    text = (
+        "Шаг 5/5\n\n" "Источник данных отклонен."
+        if not approved_at_least_one_source
+        else "Источник данных отклонен. Вы можете продолжить выбор источников или остановить поиск."
+    )
+
     await callback_query.message.edit_text(
-        text="Источник данных отклонен.",
+        text=text,
         reply_markup=select_sources_kb(
             text="Продолжить выбор источников",
             can_stop_searching=approved_at_least_one_source,
