@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
+from src.domain.enum.bot_status_enum import BotStatus
 from src.domain.model.pagination_model import PaginationModel
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
 from src.domain.model.bot_model import BotModel
@@ -62,4 +63,12 @@ class BotRepository(ABC):
 
     @abstractmethod
     async def get_active_bots(self) -> List[BotModel]:
+        pass
+
+    @abstractmethod
+    async def update_bot_status(self, bot_id: int, status: BotStatus) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_bot(self, bot_id: int) -> None:
         pass

@@ -10,10 +10,10 @@ def manage_bot_kb(
         kb.append(
             [
                 InlineKeyboardButton(
-                    text="🟢 Включить бота", callback_data=f"resume_bot_{bot_id}"
+                    text="🟢 Включить бота", callback_data=f"resume_bot_{page}_{bot_id}"
                 ),
                 InlineKeyboardButton(
-                    text="❌ Удалить бота", callback_data=f"delete_bot_{bot_id}"
+                    text="❌ Удалить бота", callback_data=f"delete_bot_{page}_{bot_id}"
                 ),
             ]
         )
@@ -21,7 +21,7 @@ def manage_bot_kb(
         kb.append(
             [
                 InlineKeyboardButton(
-                    text="🔴 Выключить бота", callback_data=f"pause_bot_{bot_id}"
+                    text="🔴 Выключить бота", callback_data=f"pause_bot_{page}_{bot_id}"
                 )
             ]
         )

@@ -100,3 +100,9 @@ class BotRepositoryImpl(BotRepository):
         daos = await BotDAO.objects().where(BotDAO.status == BotStatus.ACTIVE.value)
 
         return [BotDAO.from_dao(dao) for dao in daos]
+
+    async def update_bot_status(self, bot_id: int, status: BotStatus) -> None:
+        await BotDAO.update({BotDAO.status: status.value}).where(BotDAO.id == bot_id)
+
+    async def delete_bot(self, bot_id: int) -> None:
+        await BotDAO.delete().where(BotDAO.id == bot_id)

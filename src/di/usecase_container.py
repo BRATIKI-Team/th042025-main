@@ -1,7 +1,10 @@
 from dishka import FromDishka, Provider, Scope, provide
 
+from src.application.usecase.bot.delete_bot_usecase import DeleteBotUsecase
 from src.application.usecase.bot.get_my_bots_usecase import GetMyBotsUsecase
 from src.application.usecase.bot.is_token_unqiue_usecase import IsTokenUniqueUsecase
+from src.application.usecase.bot.resume_bot_usecase import ResumeBotUsecase
+from src.application.usecase.bot.stop_bot_usecase import StopBotUsecase
 from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
 from src.application.usecase.get_grouped_sources_usecase import GetGroupedSourcesUsecase
 from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
@@ -159,3 +162,21 @@ class UsecaseContainer(Provider):
         self, bot_repository: FromDishka[BotRepository]
     ) -> IsTokenUniqueUsecase:
         return IsTokenUniqueUsecase(bot_repository=bot_repository)
+
+    @provide(scope=Scope.APP)
+    def delete_bot_usecase(
+        self, bot_repository: FromDishka[BotRepository]
+    ) -> DeleteBotUsecase:
+        return DeleteBotUsecase(bot_repository=bot_repository)
+
+    @provide(scope=Scope.APP)
+    def resume_bot_usecase(
+        self, bot_repository: FromDishka[BotRepository]
+    ) -> ResumeBotUsecase:
+        return ResumeBotUsecase(bot_repository=bot_repository)
+
+    @provide(scope=Scope.APP)
+    def stop_bot_usecase(
+        self, bot_repository: FromDishka[BotRepository]
+    ) -> StopBotUsecase:
+        return StopBotUsecase(bot_repository=bot_repository)
