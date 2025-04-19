@@ -1,6 +1,6 @@
 from src.domain.enum.source_status_enum import SourceStatus
 from src.domain.model.source_model import SourceModel
-from src.domain.repository.source_repository import SourceRepository
+from src.domain.repository import SourceRepository
 from src.infrastructure.dao.source_dao import SourceDAO
 
 
