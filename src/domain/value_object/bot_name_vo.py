@@ -1,12 +1,11 @@
-class BotNameVO:
-    def __init__(self, name: str):
-        self._name = name
-        self._validate()
+from pydantic import BaseModel, field_validator
 
-    def _validate(self) -> None:
-        if len(self._name) > 255:
+
+class BotNameVO(BaseModel):
+    value: str
+
+    @field_validator("value")
+    def validate_name(cls, v: str) -> str:
+        if len(v) > 255:
             raise ValueError("Name must be less than 255 characters")
-
-    @property
-    def value(self) -> str:
-        return self._name
+        return v

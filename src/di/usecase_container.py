@@ -15,6 +15,7 @@ from src.application.usecase.telegram_get_messages_usecase import (
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.telegram_repository import TelegramRepository
+from src.domain.repository.user_repository import UserRepository
 
 
 class UsecaseContainer(Provider):
@@ -50,6 +51,10 @@ class UsecaseContainer(Provider):
 
     @provide(scope=Scope.APP)
     def create_bot_usecase(
-        self, bot_repository: FromDishka[BotRepository]
+        self,
+        bot_repository: FromDishka[BotRepository],
+        user_repository: FromDishka[UserRepository],
     ) -> CreateBotUsecase:
-        return CreateBotUsecase(repository=bot_repository)
+        return CreateBotUsecase(
+            bot_repository=bot_repository, user_repository=user_repository
+        )

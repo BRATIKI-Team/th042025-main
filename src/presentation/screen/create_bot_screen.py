@@ -11,6 +11,7 @@ from src.application.usecase.get_pending_source_usecase import GetPendingSourceU
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
 from src.domain.value_object.bot_name_vo import BotNameVO
+from src.domain.value_object.bot_token_vo import BotTokenVO
 from src.presentation.kb.bot_notification_period_kb import bot_notification_period_kb
 from src.presentation.kb.select_sources_kb import select_sources_kb
 
@@ -21,6 +22,7 @@ class CreateBotStatesGroup(StatesGroup):
     bot_name = State()
     bot_description = State()
     bot_notification_period = State()
+    bot_token = State()
     bot_sources = State()
 
 
@@ -28,7 +30,7 @@ class CreateBotStatesGroup(StatesGroup):
 async def create_bot_screen(
     callback_query: CallbackQuery, state: FSMContext, bot: Bot
 ) -> None:
-    text = "Шаг 1/4\n\n" "Введите название бота в нашей системе."
+    text = "Шаг 1/5\n\n" "Введите название бота в нашей системе."
 
     await bot.edit_message_text(
         text=text,
@@ -42,7 +44,7 @@ async def create_bot_screen(
 @router.message(CreateBotStatesGroup.bot_name)
 async def bot_name_handler(message: Message, state: FSMContext, bot: Bot) -> None:
     try:
-        bot_name = BotNameVO(name=message.text.strip())
+        bot_name = BotNameVO(value=message.text.strip())
     except ValueError as e:
         await bot.send_message(
             text=f"Ошибка. Возможно, вы ввели слишком длинное название бота. Попробуйте снова.",
@@ -51,7 +53,7 @@ async def bot_name_handler(message: Message, state: FSMContext, bot: Bot) -> Non
         return
 
     text = (
-        "Шаг 2/4\n\n"
+        "Шаг 2/5\n\n"
         "Введите описание бота, по которому будут выбираться источники данных. Будьте точны и лаконичны."
     )
 
@@ -69,7 +71,7 @@ async def bot_description_handler(
     message: Message, state: FSMContext, bot: Bot
 ) -> None:
     try:
-        bot_description = BotDescriptionVO(description=message.text.strip())
+        bot_description = BotDescriptionVO(value=message.text.strip())
     except ValueError as e:
         await bot.send_message(
             text=f"Ошибка. Возможно, вы ввели слишком длинное описание бота. Попробуйте снова.",
@@ -80,7 +82,7 @@ async def bot_description_handler(
     # TODO validate if bot description has enough details
 
     text = (
-        "Шаг 3/4\n\n" "Выберите период, за который будет формироваться сводка новостей."
+        "Шаг 3/5\n\n" "Выберите период, за который будет формироваться сводка новостей."
     )
 
     await bot.send_message(
@@ -98,30 +100,68 @@ async def bot_notification_period_handler(
     callback_query: CallbackQuery,
     state: FSMContext,
     bot: Bot,
-    create_bot_usecase: FromDishka[CreateBotUsecase],
 ) -> None:
     period = BotNotificationPeriod(int(callback_query.data))
 
-    bot_id = await create_bot_usecase.execute(
-        request=CreateBotRequest(
-            user_id=callback_query.from_user.id,
-            name=cast(BotNameVO, await state.get_data("bot_name")),
-            period=period,
-        )
-    )
+    # TODO better instructions
 
     text = (
-        "Шаг 4/4\n\n"
-        "Выберите источники данных, по которым будет формироваться сводка новостей. Вам нужно выбрать хотя бы один источник."
+        "Шаг 4/5\n\n" "Введите токен для бота. Токен можно получить в боте @BotFather."
     )
 
     await bot.send_message(
         text=text,
         chat_id=callback_query.message.chat.id,
+    )
+
+    await state.update_data(bot_notification_period=period)
+    await state.set_state(CreateBotStatesGroup.bot_token)
+
+
+@router.message(CreateBotStatesGroup.bot_token)
+async def bot_token_handler(
+    message: Message,
+    state: FSMContext,
+    bot: Bot,
+    create_bot_usecase: FromDishka[CreateBotUsecase],
+) -> None:
+    try:
+        bot_token = BotTokenVO(value=message.text.strip())
+    except ValueError as e:
+        await bot.send_message(
+            text=f"Ошибка. Возможно, вы ввели неверный токен. Пожалуйста, обратитесь к инструкции и попробуйте снова.",
+            chat_id=message.chat.id,
+        )
+        return
+
+    # TODO check if bot token is valid
+
+    bot_id = await create_bot_usecase.execute(
+        request=CreateBotRequest(
+            user_id=message.from_user.id,
+            name=cast(BotNameVO, await state.get_value("bot_name")),
+            period=cast(
+                BotNotificationPeriod, await state.get_value("bot_notification_period")
+            ),
+            token=bot_token,
+            description=cast(
+                BotDescriptionVO, await state.get_value("bot_description")
+            ),
+        )
+    )
+
+    text = (
+        "Шаг 5/5\n\n"
+        "Выберите источники данных, по которым будет формироваться сводка новостей. Вам нужно выбрать хотя бы один источник."
+    )
+
+    await bot.send_message(
+        text=text,
+        chat_id=message.chat.id,
         reply_markup=select_sources_kb(),
     )
 
-    await state.update_data(bot_notification_period=period, bot_id=bot_id)
+    await state.update_data(bot_id=bot_id, bot_token=bot_token)
     await state.set_state(CreateBotStatesGroup.bot_sources)
 
 
