@@ -8,7 +8,7 @@ from src.application.agents.summarizer import system_prompt
 from src.application.agents.parser.parser_agent import Message
 from src.application.dto.summary_dto import SummaryDto
 
-class SummarizeAgent:
+class SummarizerAgent:
     def __init__(self):
         self.__llm_model_name = Config.OPENAI_MODEL_NAME
         self._agent = self.__create_agent()

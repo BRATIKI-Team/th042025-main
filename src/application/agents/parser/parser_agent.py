@@ -17,10 +17,9 @@ class Message(BaseModel):
 
 
 class ParserAgent:
-    def __init__(self, topic: str, messages: List[Message]):
+    def __init__(self, topic: str):
         self.__llm_model_name = Config.OPENAI_MODEL_NAME
         self.__topic = topic
-        self.__messages = messages
         self.__agent = self.__create_agent()
 
     def __create_agent(self) -> Agent:
@@ -33,9 +32,9 @@ class ParserAgent:
             system_prompt=system_prompt_formatted,
         )
 
-    async def execute(self) -> List[Message]:
+    async def execute(self, messages: List[Message]) -> List[Message]:
         messages_json = json.dumps(
-            [message.model_dump() for message in self.__messages]
+            [message.model_dump() for message in messages]
         )
 
         result = await self.__agent.run(messages_json)
