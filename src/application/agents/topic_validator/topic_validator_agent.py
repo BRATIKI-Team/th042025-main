@@ -1,7 +1,7 @@
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
-from src.application.agents.topic_validator.system_prompt import system_prompt
+from .prompts import system_prompt
 
 
 class TopicValidatorAgent:

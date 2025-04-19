@@ -9,9 +9,8 @@ import json
 
 from src.application.dto.summary_dto import SummaryDto
 from src.application.services import IndexService
-from src.application.agents.sanitizer import system_prompt
 from src.infrastructure.config import config
-
+from .prompts import system_prompt
 
 class SanitizerAgent:
     def __init__(
@@ -23,7 +22,10 @@ class SanitizerAgent:
         self.__bot_id = bot_id
         self.__summaries_to_sanitize = summaries_to_sanitize
         self.__index_service = index_service
-        self.__llm = OpenAI(api_key=config.OPENAI_API_KEY, model=config.OPENAI_MODEL_NAME)
+        self.__llm = OpenAI(
+            api_key=config.OPENAI_API_KEY.get_secret_value(),
+            model=config.OPENAI_MODEL_NAME
+        )
         self.__agent = self.__create_agent()
 
     def __create_agent(self) -> FunctionAgent:

@@ -1,16 +1,18 @@
 ﻿from pydantic_ai import Agent
+from pydantic_ai.models import OpenAIModel
 from typing import List
-
-from pydantic_ai import Agent
 
 from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import config
-from src.application.agents.summarizer import system_prompt
 from src.application.dto.summary_dto import SummaryDto
+from .prompts import system_prompt
 
 class SummarizerAgent:
     def __init__(self):
-        self.__llm_model_name = config.OPENAI_MODEL_NAME
+        self.__llm = OpenAIModel(
+            model_name=config.OPENAI_MODEL_NAME,
+            api_key=config.OPENAI_API_KEY.get_secret_value()
+        )
         self._agent = self.__create_agent()
 
     def __create_agent(self) -> Agent:
@@ -19,7 +21,7 @@ class SummarizerAgent:
         """
         print("---**Summarizer Agent** | creating | ....", end="\n\n")
         return Agent(
-            model=self.__llm_model_name,
+            model=self.__llm,
             deps_type=List[str],
             output_type=List[SummaryDto],
             system_prompt=system_prompt,
