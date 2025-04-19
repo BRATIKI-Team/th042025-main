@@ -6,6 +6,8 @@ from src.di.container import init_container
 from src.infrastructure.config import config
 from src.presentation.command.start_command import router as start_command_router
 from src.presentation.screen.create_bot_screen import router as create_bot_screen_router
+from src.presentation.screen.manage_bot_screen import router as manage_bot_screen_router
+from src.presentation.screen.menu_screen import router as menu_screen_router
 
 
 async def main() -> None:
@@ -16,7 +18,9 @@ async def main() -> None:
     dp.include_router(start_command_router)
 
     # Screen routers
+    dp.include_router(menu_screen_router)
     dp.include_router(create_bot_screen_router)
+    dp.include_router(manage_bot_screen_router)
 
     container = init_container(specific_providers=[AiogramProvider()])
 

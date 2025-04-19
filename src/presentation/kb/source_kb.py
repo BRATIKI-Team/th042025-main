@@ -5,12 +5,12 @@ def source_kb(source_id: int, can_stop_searching: bool = False) -> InlineKeyboar
     kb = [
         [
             InlineKeyboardButton(
-                text="Принять ✅", callback_data=f"accept_source_{source_id}   "
+                text="✅ Принять", callback_data=f"accept_source_{source_id}   "
             )
         ],
         [
             InlineKeyboardButton(
-                text="Отклонить ❌", callback_data=f"reject_source_{source_id}"
+                text="❌ Отклонить", callback_data=f"reject_source_{source_id}"
             )
         ],
     ]

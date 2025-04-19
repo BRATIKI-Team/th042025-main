@@ -21,6 +21,7 @@ from src.domain.value_object.bot_token_vo import BotTokenVO
 from src.presentation.kb.bot_notification_period_kb import bot_notification_period_kb
 from src.presentation.kb.select_sources_kb import select_sources_kb
 from src.presentation.kb.source_kb import source_kb
+from src.presentation.kb.to_menu_kb import to_menu_kb
 
 router = Router()
 
@@ -37,7 +38,11 @@ class CreateBotStatesGroup(StatesGroup):
 async def create_bot_screen(
     callback_query: CallbackQuery, state: FSMContext, bot: Bot
 ) -> None:
-    text = "Шаг 1/5\n\n" "Введите название бота в нашей системе."
+    text = (
+        "🔩 Шаг 1/5\n\n"
+        "Введите название бота в нашей системе.\n\n"
+        "Если вы хотите остановить создание бота, введите команду /cancel"
+    )
 
     await bot.edit_message_text(
         text=text,
@@ -50,9 +55,12 @@ async def create_bot_screen(
 
 @router.message(CreateBotStatesGroup.bot_name)
 async def bot_name_handler(message: Message, state: FSMContext, bot: Bot) -> None:
+    if message.text.strip() == "/cancel":
+        return await cancel_handler(message, state)
+
     try:
         bot_name = BotNameVO(value=message.text.strip())
-    except ValueError as e:
+    except ValueError:
         await bot.send_message(
             text=f"Ошибка. Возможно, вы ввели слишком длинное название бота. Попробуйте снова.",
             chat_id=message.chat.id,
@@ -60,8 +68,9 @@ async def bot_name_handler(message: Message, state: FSMContext, bot: Bot) -> Non
         return
 
     text = (
-        "Шаг 2/5\n\n"
-        "Введите описание бота, по которому будут выбираться источники данных. Будьте точны и лаконичны."
+        "⚙️ Шаг 2/5\n\n"
+        "Введите описание бота, по которому будут выбираться источники данных. Будьте точны и лаконичны.\n\n"
+        "Если вы хотите остановить создание бота, введите команду /cancel"
     )
 
     await bot.send_message(
@@ -80,24 +89,39 @@ async def bot_description_handler(
     bot: Bot,
     validate_topic_usecase: FromDishka[ValidateTopicUsecase],
 ) -> None:
+    if message.text.strip() == "/cancel":
+        return await cancel_handler(message, state)
+
     try:
         bot_description = BotDescriptionVO(value=message.text.strip())
-    except ValueError as e:
+    except ValueError:
+        text = (
+            "Ошибка. Возможно, вы ввели слишком длинное описание бота. Попробуйте снова.\n\n"
+            "Если вы хотите остановить создание бота, введите команду /cancel"
+        )
+
         await bot.send_message(
-            text=f"Ошибка. Возможно, вы ввели слишком длинное описание бота. Попробуйте снова.",
+            text=text,
             chat_id=message.chat.id,
         )
         return
 
     if not await validate_topic_usecase.execute(topic=bot_description.value):
+        text = (
+            "Ошибка. Пожалуйста, введите более подробное описание бота.\n\n"
+            "Если вы хотите остановить создание бота, введите команду /cancel"
+        )
+
         await bot.send_message(
-            text=f"Ошибка. Пожалуйста, введите более подробное описание бота.",
+            text=text,
             chat_id=message.chat.id,
         )
         return
 
     text = (
-        "Шаг 3/5\n\n" "Выберите период, за который будет формироваться сводка новостей."
+        "🔋 Шаг 3/5\n\n"
+        "Выберите период, за который будет формироваться сводка новостей.\n\n"
+        "Если вы хотите остановить создание бота, введите команду /cancel"
     )
 
     await bot.send_message(
@@ -110,8 +134,17 @@ async def bot_description_handler(
     await state.set_state(CreateBotStatesGroup.bot_notification_period)
 
 
+@router.message(CreateBotStatesGroup.bot_notification_period)
+async def bot_notification_period_message_handler(
+    message: Message,
+    state: FSMContext,
+) -> None:
+    if message.text.strip() == "/cancel":
+        return await cancel_handler(message, state)
+
+
 @router.callback_query(CreateBotStatesGroup.bot_notification_period)
-async def bot_notification_period_handler(
+async def bot_notification_period_callback_query_handler(
     callback_query: CallbackQuery,
     state: FSMContext,
     bot: Bot,
@@ -121,7 +154,9 @@ async def bot_notification_period_handler(
     # TODO better instructions
 
     text = (
-        "Шаг 4/5\n\n" "Введите токен для бота. Токен можно получить в боте @BotFather."
+        "🧠 Шаг 4/5\n\n"
+        "Введите токен для бота. Токен можно получить в боте @BotFather.\n\n"
+        "Если вы хотите остановить создание бота, введите команду /cancel"
     )
 
     await bot.send_message(
@@ -140,11 +175,19 @@ async def bot_token_handler(
     bot: Bot,
     create_bot_usecase: FromDishka[CreateBotUsecase],
 ) -> None:
+    if message.text.strip() == "/cancel":
+        return await cancel_handler(message, state)
+
     try:
         bot_token = BotTokenVO(value=message.text.strip())
-    except ValueError as e:
+    except ValueError:
+        text = (
+            "Ошибка. Возможно, вы ввели неверный токен. Пожалуйста, обратитесь к инструкции и попробуйте снова.\n\n"
+            "Если вы хотите остановить создание бота, введите команду /cancel"
+        )
+
         await bot.send_message(
-            text=f"Ошибка. Возможно, вы ввели неверный токен. Пожалуйста, обратитесь к инструкции и попробуйте снова.",
+            text=text,
             chat_id=message.chat.id,
         )
         return
@@ -166,7 +209,7 @@ async def bot_token_handler(
     )
 
     text = (
-        "Шаг 5/5\n\n"
+        "🤖 Шаг 5/5\n\n"
         "Выберите источники данных, по которым будет формироваться сводка новостей. Вам нужно выбрать хотя бы один источник."
     )
 
@@ -202,7 +245,7 @@ async def select_sources_handler(
         pending_source = await get_pending_source_usecase.execute(bot_id=bot_id)
 
     if pending_source is None:
-        text = "Шаг 5/5\n\n" "Нет доступных источников данных. Попробуйте позже."
+        text = "🤖 Шаг 5/5\n\n" "Нет доступных источников данных. Попробуйте позже."
 
         await callback_query.message.edit_text(
             text=text,
@@ -215,7 +258,7 @@ async def select_sources_handler(
         return
 
     text = (
-        f"Шаг 5/5\n\n"
+        f"🤖 Шаг 5/5\n\n"
         f"Источник данных: {pending_source.name}\n\n"
         f"Описание: {pending_source.description}\n\n"
         f"Ссылка: {pending_source.url}\n\n"
@@ -242,14 +285,14 @@ async def accept_source_handler(
     await state.update_data(approved_at_least_one_source=True)
 
     text = (
-        "Шаг 5/5\n\n"
+        "🤖 Шаг 5/5\n\n"
         "Источник данных принят. Вы можете принять ещё один источник или остановить поиск."
     )
 
     await callback_query.message.edit_text(
         text=text,
         reply_markup=select_sources_kb(
-            text="Продолжить выбор источников", can_stop_searching=True
+            text="🕵️‍♂️ Продолжить выбор источников", can_stop_searching=True
         ),
     )
 
@@ -269,7 +312,7 @@ async def reject_source_handler(
     )
 
     text = (
-        "Шаг 5/5\n\n" "Источник данных отклонен."
+        "🤖 Шаг 5/5\n\n" "Источник данных отклонен."
         if not approved_at_least_one_source
         else "Источник данных отклонен. Вы можете продолжить выбор источников или остановить поиск."
     )
@@ -277,7 +320,16 @@ async def reject_source_handler(
     await callback_query.message.edit_text(
         text=text,
         reply_markup=select_sources_kb(
-            text="Продолжить выбор источников",
+            text="🕵️‍♂️ Продолжить выбор источников",
             can_stop_searching=approved_at_least_one_source,
         ),
+    )
+
+
+async def cancel_handler(message: Message, state: FSMContext) -> None:
+    await state.clear()
+
+    await message.answer(
+        text="😢 Создание бота отменено.",
+        reply_markup=to_menu_kb(),
     )

@@ -15,7 +15,7 @@ def select_sources_kb(
 
     if can_stop_searching:
         kb.append(
-            [InlineKeyboardButton(text="Остановить поиск 🔎", callback_data="menu")]
+            [InlineKeyboardButton(text="🛑 Остановить поиск", callback_data="menu_new")]
         )
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
