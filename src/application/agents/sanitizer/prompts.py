@@ -19,38 +19,17 @@ Follow these rules:
     - Each JSON object must have the following structure:
       {
         "title": "original title",
-        "content": "sanitized content"
+        "content": "sanitized content",
+        "metadata": "summarized metadata",
       }
     - Ensure the sanitized summary is concise, clear, and informative.
     - Do not fabricate new information — preserve the original intent.
-    - Do not add with returning json object any other explanation by yourself.
+    - YOU HAVE TO RETURN ONLY JSON OBJECT, WITHOUT ADDITIONAL EXPLANATION.
 
 4. General rules:
     - Maintain original tone and structure where possible.
     - Avoid repeating facts or messages already present in past notifications.
     - Only return cleaned summaries — do not include analysis or reasoning in the final output.
-
-### **Output Format**:
-Your response should be a list of summaries, where each summary is represented as a dictionary with the following fields:
-```json
-[
-  {
-    "title": "Title of the Combined Summary",
-    "content": "The full, rewritten text of the combined summary",
-    "metadata": { 
-      "key1": "value1", 
-      "key2": "value2" 
-    }
-  },
-  {
-    "title": "Title of the Another Combined Summary",
-    "content": "The full, rewritten text of the another combined summary",
-    "metadata": {
-      "key1": "value1", 
-      "key2": "value2" 
-    }
-  }
-]
 
 CHECK YOUR ANSWER BEFORE RETURNING IT!!!.
 """

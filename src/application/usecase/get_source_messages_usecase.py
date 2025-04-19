@@ -62,7 +62,7 @@ class GetSourceMessagesUsecase:
             # Get messages from Telegram
             telegram_messages = await self._telegram_repository.get_messages(
                 channel_username=channel_username,
-                limit=50,  # Adjust as needed
+                limit=5,  # Adjust as needed
                 offset_date=grouped_source.last_hit_datetime,
             )
 

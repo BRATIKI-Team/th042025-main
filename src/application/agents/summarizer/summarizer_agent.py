@@ -1,4 +1,7 @@
-﻿from pydantic_ai import Agent
+﻿import json
+from datetime import datetime
+
+from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from typing import List
@@ -8,11 +11,12 @@ from src.infrastructure.config import config
 from src.application.dto.summary_dto import SummaryDto
 from .prompts import system_prompt
 
+
 class SummarizerAgent:
     def __init__(self):
         self.__llm = OpenAIModel(
             model_name=config.OPENAI_MODEL_NAME,
-            provider=OpenAIProvider(api_key=config.OPENAI_API_KEY.get_secret_value())
+            provider=OpenAIProvider(api_key=config.OPENAI_API_KEY.get_secret_value()),
         )
         self._agent = self.__create_agent()
 
@@ -32,8 +36,18 @@ class SummarizerAgent:
         """
         Execute the summarizer agent.
         """
+
+        def datetime_handler(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            raise TypeError(
+                f"Object of type {type(obj).__name__} is not JSON serializable"
+            )
+
         print("---**Summarizer Agent** | executing | ....", end="\n\n")
-        messages_json = [message.model_dump() for message in messages]
+        messages_json = json.dumps(
+            [message.model_dump() for message in messages], default=datetime_handler
+        )
 
         print(f"---**Summarizer Agent** | input | => {messages_json}", end="\n\n")
         result = await self._agent.run(messages_json)

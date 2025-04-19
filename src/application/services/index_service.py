@@ -1,13 +1,18 @@
 from typing import List
 from llama_index.core import StorageContext, VectorStoreIndex, Document
+from llama_index.embeddings.openai import OpenAIEmbedding
 
 from src.domain.repository.chroma_repository import ChromaRepository
 from src.infrastructure.dao.summary_dao import SummaryDAO
+from src.infrastructure.config import config
 
 
 class IndexService:
     def __init__(self, chroma_repository: ChromaRepository) -> None:
         self.__chroma_repository = chroma_repository
+        self.__embed_model = OpenAIEmbedding(
+            api_key=config.OPENAI_API_KEY.get_secret_value()
+        )
 
     async def index_summaries(
         self, bot_id: str, summaries: List[SummaryDAO]
@@ -40,12 +45,17 @@ class IndexService:
         Returns:
         A VectorStoreIndex object for the specified chat_id
         """
-        vector_store = self.__chroma_repository.get_or_create_vector_store(bot_id)
+        collection_name = self.__get_collection_name(bot_id)
+        vector_store = self.__chroma_repository.get_or_create_vector_store(
+            collection_name
+        )
 
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
         return VectorStoreIndex.from_vector_store(
-            vector_store=vector_store, storage_context=storage_context
+            vector_store=vector_store,
+            storage_context=storage_context,
+            embed_model=self.__embed_model,
         )
 
     async def __index(self, bot_id: str, documents: List[Document]) -> VectorStoreIndex:
@@ -60,10 +70,18 @@ class IndexService:
         Returns:
         A VectorStoreIndex object representing the created index for the document
         """
+        collection_name = self.__get_collection_name(bot_id)
+        await self.__chroma_repository.drop_collection_if_exists(collection_name)
 
-        await self.__chroma_repository.drop_collection_if_exists(bot_id)
-
-        vector_store = self.__chroma_repository.get_or_create_vector_store(bot_id)
+        vector_store = self.__chroma_repository.get_or_create_vector_store(
+            collection_name
+        )
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-        return VectorStoreIndex.from_documents(documents, storage_context)
+        return VectorStoreIndex.from_documents(
+            documents, storage_context=storage_context, embed_model=self.__embed_model
+        )
+
+    @staticmethod
+    def __get_collection_name(bot_id: str) -> str:
+        return f"bot_collection_{bot_id}"

@@ -50,7 +50,9 @@ class NotifyBotUsecase:
             bot.id, bot.last_notified_at
         )
 
-        summrizedMessages = await self._workflow.start_workflow(bot.id, bot.description.value, messages)
+        summrizedMessages = await self._workflow.start_workflow(
+            bot.id, bot.description.value, messages
+        )
 
         # This could involve sending a message to a Telegram bot,
         # posting to a webhook, etc.
@@ -65,16 +67,20 @@ class NotifyBotUsecase:
 
         try:
             for message in summrizedMessages:
-                message_text = message.title + "\n\n" + message.text
+                message_text = message.title + "\n\n" + message.content
 
                 for user_id in user_ids:
                     try:
                         await aiogram_bot.send_message(
                             chat_id=user_id, text=message_text, parse_mode="HTML"
                         )
-                        logger.info(f"Sent notification to user {user_id} for bot {bot_id}")
+                        logger.info(
+                            f"Sent notification to user {user_id} for bot {bot_id}"
+                        )
                     except Exception as e:
-                        logger.error(f"Failed to send message to user {user_id}: {str(e)}")
+                        logger.error(
+                            f"Failed to send message to user {user_id}: {str(e)}"
+                        )
 
             # Обновляем время последнего уведомления
             await self._bot_repository.update_last_notified_at(bot_id, datetime.now())
