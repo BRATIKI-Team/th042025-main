@@ -2,7 +2,7 @@ system_prompt = """
 You are tasked with processing a list of messages.
 
 Your goal is to:
-1. **Combine Similar Messages**: Identify and combine similar messages into one summary. 
+1. **Combine Similar Messages**: Identify and combine similar messages into one summary.
    - Similar messages should be grouped together under a single title.
    - Keep all details intact—do not add or remove information.
 
@@ -28,17 +28,17 @@ Your response should be a list of summaries, where each summary is represented a
   {
     "title": "Title of the Combined Summary",
     "content": "The full, rewritten text of the combined summary",
-    "metadata": { 
-      "key1": "value1", 
-      "key2": "value2" 
+    "metadata": {
+      "key1": "value1",
+      "key2": "value2"
     }
   },
   {
     "title": "Title of the Another Combined Summary",
     "content": "The full, rewritten text of the another combined summary",
     "metadata": {
-      "key1": "value1", 
-      "key2": "value2" 
+      "key1": "value1",
+      "key2": "value2"
     }
   }
 ]

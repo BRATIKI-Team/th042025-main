@@ -36,10 +36,12 @@ class RepositoryContainer(Provider):
         self,
         validate_topic_agent: FromDishka[TopicValidatorAgent],
         search_sources_agent: FromDishka[SourceSearcherAgent],
+        telegram_repository: FromDishka[TelegramRepository],
     ) -> SourceRepository:
         return SourceRepositoryImpl(
             validate_topic_agent=validate_topic_agent,
             search_sources_agent=search_sources_agent,
+            telegram_repository=telegram_repository,
         )
 
     @provide(scope=Scope.APP)

@@ -11,6 +11,7 @@ from src.domain.model.grouped_source_model import GroupedSourceModel
 from src.domain.model.pagination_model import PaginationModel
 from src.domain.model.source_model import SourceModel
 from src.domain.repository.source_repository import SourceRepository
+from src.domain.repository.telegram_repository import TelegramRepository
 from src.infrastructure.dao.source_dao import SourceDAO
 
 
@@ -19,10 +20,12 @@ class SourceRepositoryImpl(SourceRepository):
         self,
         validate_topic_agent: TopicValidatorAgent,
         search_sources_agent: SourceSearcherAgent,
+        telegram_repository: TelegramRepository,
     ):
         self.__validate_topic_agent = validate_topic_agent
         self.__search_sources_agent = search_sources_agent
-
+        self.__telegram_repository = telegram_repository
+        
     async def get_source_by_status(
         self, bot_id: int, status: SourceStatus
     ) -> SourceModel | None:
@@ -127,10 +130,19 @@ class SourceRepositoryImpl(SourceRepository):
         return await self.__validate_topic_agent.execute(topic=topic)
 
     async def search_sources(self, bot_id: int, topic: str) -> None:
-        responses = await self.__search_sources_agent.execute(topic=topic)
-
+        result_responses = []
+        while len(result_responses) < 10:
+            responses = await self.__search_sources_agent.execute(topic=topic)
+            
+            for response in responses:
+                try:
+                    await self.__telegram_repository.get_channel_info(response.url)
+                    result_responses.append(response)
+                except Exception:
+                    continue
+        
         models = []
-        for response in responses:
+        for response in result_responses:
             models.append(
                 SourceDAO(
                     bot_id=bot_id,

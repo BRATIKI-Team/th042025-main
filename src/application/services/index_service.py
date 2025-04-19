@@ -10,7 +10,9 @@ from src.infrastructure.config import config
 class IndexService:
     def __init__(self, chroma_repository: ChromaRepository) -> None:
         self.__chroma_repository = chroma_repository
-        self.__embed_model = OpenAIEmbedding(api_key=config.OPENAI_API_KEY.get_secret_value())
+        self.__embed_model = OpenAIEmbedding(
+            api_key=config.OPENAI_API_KEY.get_secret_value()
+        )
 
     async def index_summaries(
         self, bot_id: str, summaries: List[SummaryDAO]
@@ -44,14 +46,16 @@ class IndexService:
         A VectorStoreIndex object for the specified chat_id
         """
         collection_name = self.__get_collection_name(bot_id)
-        vector_store = self.__chroma_repository.get_or_create_vector_store(collection_name)
+        vector_store = self.__chroma_repository.get_or_create_vector_store(
+            collection_name
+        )
 
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
         return VectorStoreIndex.from_vector_store(
-            vector_store=vector_store, 
+            vector_store=vector_store,
             storage_context=storage_context,
-            embed_model=self.__embed_model
+            embed_model=self.__embed_model,
         )
 
     async def __index(self, bot_id: str, documents: List[Document]) -> VectorStoreIndex:
@@ -69,15 +73,15 @@ class IndexService:
         collection_name = self.__get_collection_name(bot_id)
         await self.__chroma_repository.drop_collection_if_exists(collection_name)
 
-        vector_store = self.__chroma_repository.get_or_create_vector_store(collection_name)
+        vector_store = self.__chroma_repository.get_or_create_vector_store(
+            collection_name
+        )
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
         return VectorStoreIndex.from_documents(
-            documents, 
-            storage_context=storage_context,
-            embed_model=self.__embed_model
+            documents, storage_context=storage_context, embed_model=self.__embed_model
         )
-    
+
     @staticmethod
     def __get_collection_name(bot_id: str) -> str:
         return f"bot_collection_{bot_id}"

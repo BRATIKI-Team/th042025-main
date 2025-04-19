@@ -13,10 +13,7 @@ class SummaryWorkflow:
         self.__index_service = index_service
 
     async def start_workflow(
-        self,
-        bot_id: int,
-        topic: str,
-        messages: List[MessageModel]
+        self, bot_id: int, topic: str, messages: List[MessageModel]
     ) -> List[SummaryDto]:
         """
         Starts the summary workflow.
@@ -25,7 +22,7 @@ class SummaryWorkflow:
             bot_id: The ID of the bot.
             topic: The topic of the messages.
             messages: The messages to summarize.
-        
+
         Returns:
             Summaries ready to be sent to user.
         """
@@ -35,7 +32,9 @@ class SummaryWorkflow:
 
         return sanitized_summaries
 
-    async def __parse_messages(self, topic: str, messages: List[MessageModel]) -> List[MessageModel]:
+    async def __parse_messages(
+        self, topic: str, messages: List[MessageModel]
+    ) -> List[MessageModel]:
         """
         Extracts the appropriate messages by topic.
 
@@ -48,9 +47,10 @@ class SummaryWorkflow:
         """
         parser_agent = ParserAgent(topic)
         return await parser_agent.execute(messages)
-    
 
-    async def __summarize_messages(self, messages: List[MessageModel]) -> List[SummaryDto]:
+    async def __summarize_messages(
+        self, messages: List[MessageModel]
+    ) -> List[SummaryDto]:
         """
         Summarizes the messages, removing duplicates.
 
@@ -62,9 +62,10 @@ class SummaryWorkflow:
         """
         summarizer_agent = SummarizerAgent()
         return await summarizer_agent.execute(messages)
-    
 
-    async def __sanitize_summaries(self, bot_id: int, summaries: List[SummaryDto]) -> List[SummaryDto]:
+    async def __sanitize_summaries(
+        self, bot_id: int, summaries: List[SummaryDto]
+    ) -> List[SummaryDto]:
         """
         Sanitizes the summaries, removing the information that had been already sent to user.
         This helps to avoid notifying same information multiple times.
@@ -78,6 +79,6 @@ class SummaryWorkflow:
         """
         sanitizer_agent = SanitizerAgent(bot_id, summaries, self.__index_service)
         return await sanitizer_agent.execute()
-        
+
     async def __generate_images(self):
         pass
