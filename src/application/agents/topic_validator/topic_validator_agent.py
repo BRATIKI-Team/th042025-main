@@ -7,9 +7,7 @@ from src.application.agents.topic_validator import system_prompt
 class TopicValidatorAgent:
     def __init__(
         self,
-        topic: str
     ):
-        self.__topic = topic
         self.__llm_model_name = Config.OPENAI_MODEL_NAME
         self.__agent = self.__create_agent()
 
@@ -26,7 +24,7 @@ class TopicValidatorAgent:
             retries=3  # Fewer retries as validation is simpler
         )
     
-    async def execute(self) -> bool:
+    async def execute(self, topic) -> bool:
         """
         Execute the agent to validate the topic title.
         
@@ -34,5 +32,5 @@ class TopicValidatorAgent:
             bool: True if the topic is valid and suitable for notification collection,
                   False otherwise.
         """
-        result = await self.__agent.run(self.__topic)
+        result = await self.__agent.run(topic)
         return result.output 
