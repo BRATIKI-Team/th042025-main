@@ -28,11 +28,13 @@ class SanitizerAgent:
         )
         self.__agent = self.__create_agent()
 
+
     def __create_agent(self) -> FunctionAgent:
         """
         Create an agent for sanitizing summaries.
         """
         print("---**Sanitizer Agent** | creating | ....", end="\n\n")
+        print(f"---**Sanitizer Agent** | bot_id | => {self.__bot_id}", end="\n\n")
         print(f"---**Sanitizer Agent** | summaries_to_sanitize | => {self.__summaries_to_sanitize}", end="\n\n")
         tools = [
             self.__create_query_engine_tool(summary)
@@ -43,6 +45,7 @@ class SanitizerAgent:
         return FunctionAgent(
             system_prompt=system_prompt, tools=tools, llm=self.__llm, verbose=True
         )
+
 
     def __create_query_engine_tool(self, summary: SummaryDto) -> QueryEngineTool:
         """
@@ -65,6 +68,7 @@ class SanitizerAgent:
             query_engine=query_engine,
             description=f"Provides information about possible existing summaries in db about - {summary.title}.",
         )
+
 
     async def execute(self) -> List[SummaryDto]:
         """

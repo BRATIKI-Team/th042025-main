@@ -33,7 +33,7 @@ class ParserAgent:
             tools=[],
             deps_type=str,
             output_type=List[MessageModel],
-            system_prompt=system_prompt_formatted,
+            system_prompt=system_prompt_formatted
         )
 
     async def execute(self, messages: List[MessageModel]) -> List[MessageModel]:
