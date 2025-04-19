@@ -3,9 +3,6 @@ import asyncio
 from typing import List, Dict  # Добавляем необходимые импорты
 from pydantic import BaseModel, Field
 
-import os
-os.environ["OPENAI_API_KEY"] = "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"
-
 
 
 
