@@ -5,6 +5,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.postprocessor import SimilarityPostprocessor
 from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.settings import Settings
 import json
 
 from src.application.dto.summary_dto import SummaryDto
@@ -26,6 +27,8 @@ class SanitizerAgent:
             api_key=config.OPENAI_API_KEY.get_secret_value(),
             model=config.OPENAI_MODEL_NAME
         )
+        # Set the global LLM for llama_index
+        Settings.llm = self.__llm
         self.__agent = self.__create_agent()
 
 
@@ -61,7 +64,7 @@ class SanitizerAgent:
         
         query_engine = RetrieverQueryEngine(
             retriever=retriever,
-            node_postprocessors=[SimilarityPostprocessor(similarity_cutoff=0.7)]
+            node_postprocessors=[SimilarityPostprocessor(similarity_cutoff=0.7)],
         )
 
         return QueryEngineTool.from_defaults(

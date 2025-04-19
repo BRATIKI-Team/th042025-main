@@ -19,11 +19,12 @@ Follow these rules:
     - Each JSON object must have the following structure:
       {
         "title": "original title",
-        "content": "sanitized content"
+        "content": "sanitized content",
+        "metadata": "summarized metadata",
       }
     - Ensure the sanitized summary is concise, clear, and informative.
     - Do not fabricate new information — preserve the original intent.
-    - Do not add with returning json object any other explanation by yourself.
+    - YOU HAVE TO RETURN ONLY JSON OBJECT, WITHOUT ADDITIONAL EXPLANATION.
 
 4. General rules:
     - Maintain original tone and structure where possible.

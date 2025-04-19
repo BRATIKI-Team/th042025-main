@@ -65,7 +65,7 @@ class NotifyBotUsecase:
 
         try:
             for message in summrizedMessages:
-                message_text = message.title + "\n\n" + message.text
+                message_text = message.title + "\n\n" + message.content
 
                 for user_id in user_ids:
                     try:
