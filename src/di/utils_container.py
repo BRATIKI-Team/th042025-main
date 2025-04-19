@@ -5,7 +5,9 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.models import Model
 
 from src.application.agents.source_searcher import SourceSearcherAgent
-from src.application.agents.topic_validator.topic_validator_agent import TopicValidatorAgent
+from src.application.agents.topic_validator.topic_validator_agent import (
+    TopicValidatorAgent,
+)
 from src.infrastructure.config import config
 from src.infrastructure.tg.telegram_client import TelegramClient
 

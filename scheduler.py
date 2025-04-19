@@ -35,27 +35,27 @@ async def process_source_group(
     Process a group of sources with the same type and URL.
     """
     try:
-        logger.info(f"Processing source group: {grouped_source.url} (type: {grouped_source.type})")
+        logger.info(
+            f"Processing source group: {grouped_source.url} (type: {grouped_source.type})"
+        )
         await get_source_messages_usecase.execute(grouped_source)
         logger.info(f"Successfully processed source group: {grouped_source.url}")
-
-
 
         now = datetime.now()
         bots_to_notify = []
         # Get bots for each source in the group
         for source in grouped_source.sources:
             # Get bots associated with this source
-            if source.bot_last_notified_at is None or (now - source.bot_last_notified_at) >= timedelta(seconds=source.bot_notification_period):
+            if source.bot_last_notified_at is None or (
+                now - source.bot_last_notified_at
+            ) >= timedelta(seconds=source.bot_notification_period):
                 bots_to_notify.append(source.bot_id)
-
-
 
         # Notify each bot
         for bot in bots_to_notify:
             logger.info(f"Notifying bot {bot} messages from sources")
             await notify_bot_usecase.execute(bot)
-            
+
     except Exception as e:
         logger.error(f"Error processing source group {grouped_source.url}: {str(e)}")
         raise e
@@ -105,9 +105,11 @@ async def setup_scheduler():
             id=f"process_sources_period_{period}",
             replace_existing=True,
         )
-        
-        logger.info(f"Added job for notification period {period} seconds with {len(sources)} source groups")
-    
+
+        logger.info(
+            f"Added job for notification period {period} seconds with {len(sources)} source groups"
+        )
+
     # Start the scheduler
     scheduler.start()
     logger.info("Scheduler started")

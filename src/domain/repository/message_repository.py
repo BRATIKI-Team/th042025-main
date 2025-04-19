@@ -8,12 +8,12 @@ from src.domain.model.message_model import MessageModel
 class MessageRepository(ABC):
     @abstractmethod
     async def create(
-            self,
-            source_id: int,
-            content: str,
-            external_id: str,
-            metadata: Dict[str, Any],
-            published_at: datetime | None = None
+        self,
+        source_id: int,
+        content: str,
+        external_id: str,
+        metadata: Dict[str, Any],
+        published_at: datetime | None = None,
     ) -> MessageModel:
         """
         Create a new message in the database.
@@ -44,10 +44,7 @@ class MessageRepository(ABC):
         pass
 
     @abstractmethod
-    async def create_many(
-            self,
-            messages: List[Dict[str, Any]]
-    ) -> List[MessageModel]:
+    async def create_many(self, messages: List[Dict[str, Any]]) -> List[MessageModel]:
         """
         Create multiple messages in the database in a single operation.
         Returns the created message models.
@@ -63,19 +60,17 @@ class MessageRepository(ABC):
 
     @abstractmethod
     async def read_by_bot_and_filter_by_created(
-            self,
-            bot_id: int,
-            min_created_at: Optional[datetime] = None
+        self, bot_id: int, min_created_at: Optional[datetime] = None
     ) -> List[MessageModel]:
         """
-       Retrieve all messages as MessageModel instances for sources associated with the specified bot_id,
-       optionally filtered by creation date if min_created_at is provided.
+        Retrieve all messages as MessageModel instances for sources associated with the specified bot_id,
+        optionally filtered by creation date if min_created_at is provided.
 
-       Args:
-           bot_id: The ID of the bot whose sources' messages are to be retrieved.
-           min_created_at: Optional minimum creation date for messages (if None, no date filter is applied).
+        Args:
+            bot_id: The ID of the bot whose sources' messages are to be retrieved.
+            min_created_at: Optional minimum creation date for messages (if None, no date filter is applied).
 
-       Returns:
-           List[MessageModel]: A list of MessageModel objects.
-       """
+        Returns:
+            List[MessageModel]: A list of MessageModel objects.
+        """
         pass
