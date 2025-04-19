@@ -1,8 +1,8 @@
 from pydantic_ai import Agent
-from openai import OpenAI
 
 from src.infrastructure.config import Config
 from src.application.agents.topic_validator import system_prompt
+
 
 class TopicValidatorAgent:
     def __init__(
@@ -21,16 +21,16 @@ class TopicValidatorAgent:
             deps_type=str,
             output_type=bool,
             system_prompt=system_prompt,
-            retries=3  # Fewer retries as validation is simpler
+            retries=3,  # Fewer retries as validation is simpler
         )
-    
+
     async def execute(self, topic) -> bool:
         """
         Execute the agent to validate the topic title.
-        
+
         Returns:
             bool: True if the topic is valid and suitable for notification collection,
                   False otherwise.
         """
         result = await self.__agent.run(topic)
-        return result.output 
+        return result.output

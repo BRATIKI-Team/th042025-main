@@ -15,27 +15,27 @@ class SanytizerAgent:
         self,
         bot_id: str,
         summaries_to_sanitize: List[SummaryRequest],
-        index_service: IndexService
+        index_service: IndexService,
     ):
         self.__bot_id = bot_id
         self.__summaries_to_sanitize = summaries_to_sanitize
         self.__index_service = index_service
-        self.__llm = OpenAI(api_key=Config.OPENAI_API_KEY, model=Config.OPENAI_MODEL_NAME)
+        self.__llm = OpenAI(
+            api_key=Config.OPENAI_API_KEY, model=Config.OPENAI_MODEL_NAME
+        )
         self.__agent = self.__create_agent()
-
 
     def __create_agent(self) -> FunctionAgent:
         """
         Create an agent for sanitizing summaries.
         """
-        tools = [self.__create_query_engine_tool(summary) for summary in self.__summaries_to_sanitize]
+        tools = [
+            self.__create_query_engine_tool(summary)
+            for summary in self.__summaries_to_sanitize
+        ]
         return FunctionAgent.from_tools(
-            system_prompt=system_prompt,
-            tools=tools,
-            llm=self.__llm,
-            verbose=True
+            system_prompt=system_prompt, tools=tools, llm=self.__llm, verbose=True
         )
-
 
     def __create_query_engine_tool(self, summary: SummaryRequest) -> QueryEngineTool:
         """
@@ -45,9 +45,8 @@ class SanytizerAgent:
         query_engine = index.as_query_engine()
         return QueryEngineTool.from_defaults(
             query_engine=query_engine,
-            description=f"Provides information about possible existing summaries in db about - {summary.title}."
+            description=f"Provides information about possible existing summaries in db about - {summary.title}.",
         )
-
 
     async def execute(self) -> List[SummaryRequest]:
         """
@@ -73,7 +72,7 @@ class SanytizerAgent:
         try:
             # Parse the JSON response
             sanitized_summaries = json.loads(str(result))
-            
+
             # Convert JSON objects to SummaryRequest objects
             return [
                 SummaryRequest(title=summary["title"], summary=summary["summary"])
@@ -82,7 +81,6 @@ class SanytizerAgent:
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to parse agent response as JSON: {str(e)}")
         except KeyError as e:
-            raise ValueError(f"Invalid JSON structure in agent response: missing required field {str(e)}")
-
-
-    
+            raise ValueError(
+                f"Invalid JSON structure in agent response: missing required field {str(e)}"
+            )

@@ -1,6 +1,4 @@
-
-from typing import Annotated, List
-from fastapi import Depends
+from typing import List
 from llama_index.core import StorageContext, VectorStoreIndex, Document
 
 from src.domain.repository.chroma_repository import ChromaRepository
@@ -8,16 +6,11 @@ from src.infrastructure.dao.summary_dao import SummaryDAO
 
 
 class IndexService:
-    def __init__(
-        self, chroma_repository: ChromaRepository
-    ) -> None:
+    def __init__(self, chroma_repository: ChromaRepository) -> None:
         self.__chroma_repository = chroma_repository
 
-
-    def index_summaries(
-        self,
-        bot_id: str,
-        summaries: List[SummaryDAO]
+    async def index_summaries(
+        self, bot_id: str, summaries: List[SummaryDAO]
     ) -> VectorStoreIndex:
         """
         Creates an index for a received summaries.
@@ -35,8 +28,7 @@ class IndexService:
             for summary in summaries
         ]
 
-        return self.__index(bot_id, documents)
-
+        return await self.__index(bot_id, documents)
 
     def get_index(self, bot_id: str) -> VectorStoreIndex:
         """
@@ -50,21 +42,13 @@ class IndexService:
         """
         vector_store = self.__chroma_repository.get_or_create_vector_store(bot_id)
 
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store
-        )
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
         return VectorStoreIndex.from_vector_store(
-            vector_store=vector_store,
-            storage_context=storage_context
+            vector_store=vector_store, storage_context=storage_context
         )
 
-
-    def __index(
-        self,
-        bot_id: str,
-        documents: List[Document]
-    ) -> VectorStoreIndex:
+    async def __index(self, bot_id: str, documents: List[Document]) -> VectorStoreIndex:
         """
         Creates an index for a received documents. If an index already exists for the given chat_id,
         it will be dropped and recreated.
@@ -77,11 +61,9 @@ class IndexService:
         A VectorStoreIndex object representing the created index for the document
         """
 
-        self.__chroma_repository.drop_collection_if_exists(bot_id)
+        await self.__chroma_repository.drop_collection_if_exists(bot_id)
 
         vector_store = self.__chroma_repository.get_or_create_vector_store(bot_id)
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store
-        )
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
         return VectorStoreIndex.from_documents(documents, storage_context)

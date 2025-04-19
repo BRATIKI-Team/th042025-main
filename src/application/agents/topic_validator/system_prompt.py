@@ -12,4 +12,4 @@ Return True if the topic text is meaningful.
 Return False if the topic text is meaningless, too vague, or nonsensical.
 
 Your response should be a boolean value (True/False) only.
-""" 
+"""

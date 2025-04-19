@@ -10,7 +10,7 @@ def convert_title_to_vector_index(title: str) -> str:
     Example: "Title for something!?" -> "vector_index_title_for_something"
     """
     # Remove all special characters except letters, numbers and spaces
-    cleaned = re.sub(r'[^a-zA-Z0-9\s]', '', title)
+    cleaned = re.sub(r"[^a-zA-Z0-9\s]", "", title)
     # Convert to lowercase and replace spaces with underscores
     normalized = cleaned.lower().replace(" ", "_")
     # Add prefix and return

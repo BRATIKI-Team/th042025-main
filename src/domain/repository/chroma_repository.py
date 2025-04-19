@@ -4,6 +4,12 @@ from abc import ABC, abstractmethod
 
 class ChromaRepository(ABC):
     @abstractmethod
+    async def get_or_create_vector_store(
+        self, collection_name: str
+    ) -> ChromaVectorStore:
+        pass
+
+    @abstractmethod
     async def get_or_create_collection(self, collection_name: str) -> ChromaVectorStore:
         pass
 

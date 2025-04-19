@@ -1,10 +1,10 @@
 from chromadb import Collection
 from llama_index.vector_stores.chroma import ChromaVectorStore
+from src.domain.repository.chroma_repository import ChromaRepository
 from src.infrastructure.database.engine import CHROMA_DB
-from src.infrastructure.repository import ChromaRepository
 
 
-class ChromaRepositoryImp(ChromaRepository):
+class ChromaRepositoryImpl(ChromaRepository):
     def __init__(self):
         self.__db = CHROMA_DB
 
@@ -18,11 +18,12 @@ class ChromaRepositoryImp(ChromaRepository):
         Returns:
         """
         collection = self._get_or_create_collection(collection_name)
-        print(f"found collection by name {collection_name}", collection)
+
+        print(f"Found collection by name {collection_name}", collection)
 
         return ChromaVectorStore(collection)
-    
-    def drop_collection_if_exists(self, collection_name: str) -> None:
+
+    async def drop_collection_if_exists(self, collection_name: str) -> None:
         """
         Drops a collection if it exists.
 
