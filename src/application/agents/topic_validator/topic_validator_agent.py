@@ -29,5 +29,7 @@ class TopicValidatorAgent:
             bool: True if the topic is valid and suitable for notification collection,
                   False otherwise.
         """
+        print("---**Topic Validator Agent** | executing | ....", end="\n\n")
         result = await self.__agent.run(topic)
+        print(f"---**Topic Validator Agent** | output | => {result.output}", end="\n\n")
         return result.output
