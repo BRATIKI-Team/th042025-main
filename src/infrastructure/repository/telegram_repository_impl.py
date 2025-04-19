@@ -123,43 +123,50 @@ class TelegramRepositoryImpl(TelegramRepository):
                 ] = {}  # Dictionary to store grouped messages
 
                 async with self._tg_client:
-                    async for message in self._tg_client.engine.iter_messages(
-                        channel_username, limit=limit, offset_date=offset_date
-                    ):
-                        if isinstance(message, TelethonMessage):
-                            # Get channel_id from peer_id if it's a channel message
-                            source = None
-                            if hasattr(message, "peer_id") and hasattr(
-                                message.peer_id, "channel_id"
-                            ):
-                                source = str(message.peer_id.channel_id)
+                    try:
+                        async for message in self._tg_client.engine.iter_messages(
+                            channel_username, limit=limit, offset_date=offset_date
+                        ):
+                            if isinstance(message, TelethonMessage):
+                                # Get channel_id from peer_id if it's a channel message
+                                source = None
+                                if hasattr(message, "peer_id") and hasattr(
+                                    message.peer_id, "channel_id"
+                                ):
+                                    source = str(message.peer_id.channel_id)
 
-                            # Check if message is part of a group
-                            grouped_id = getattr(message, "grouped_id", None)
+                                # Check if message is part of a group
+                                grouped_id = getattr(message, "grouped_id", None)
 
-                            if grouped_id:
-                                # If this is a grouped message, add it to the group
-                                if grouped_id not in grouped_messages:
-                                    grouped_messages[grouped_id] = []
-                                grouped_messages[grouped_id].append(message)
-                            else:
-                                # If this is a standalone message, create it
-                                messages_dict[message.id] = ChannelMessageModel(
-                                    message_id=message.id,
-                                    date=message.date,
-                                    text=message.text or "",
-                                    attachments=[],
-                                    source=source,
-                                )
-
-                                # Add attachments if present
-                                if message.media:
-                                    attachments = await self._get_message_attachments(
-                                        message
+                                if grouped_id:
+                                    # If this is a grouped message, add it to the group
+                                    if grouped_id not in grouped_messages:
+                                        grouped_messages[grouped_id] = []
+                                    grouped_messages[grouped_id].append(message)
+                                else:
+                                    # If this is a standalone message, create it
+                                    messages_dict[message.id] = ChannelMessageModel(
+                                        message_id=message.id,
+                                        date=message.date,
+                                        text=message.text or "",
+                                        attachments=[],
+                                        source=source,
                                     )
-                                    messages_dict[message.id].attachments.extend(
-                                        attachments
-                                    )
+
+                                    # Add attachments if present
+                                    if message.media:
+                                        attachments = await self._get_message_attachments(
+                                            message
+                                        )
+                                        messages_dict[message.id].attachments.extend(
+                                            attachments
+                                        )
+                    except asyncio.CancelledError:
+                        logging.warning(f"Message retrieval was cancelled for channel {channel_username}")
+                        # Return whatever messages we've collected so far
+                        messages = list(messages_dict.values())
+                        messages.sort(key=lambda x: x.message_id, reverse=True)
+                        return messages
 
                 # Process grouped messages
                 for _, group in grouped_messages.items():

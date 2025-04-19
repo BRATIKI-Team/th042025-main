@@ -44,6 +44,7 @@ from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.telegram_repository import TelegramRepository
 from src.domain.repository.user_bot_repository import UserBotRepository
 from src.domain.repository.user_repository import UserRepository
+from src.domain.repository.summary_repository import SummaryRepository
 
 
 class UsecaseContainer(Provider):
@@ -124,12 +125,14 @@ class UsecaseContainer(Provider):
         bot_repository: FromDishka[BotRepository],
         user_bot_repository: FromDishka[UserBotRepository],
         message_repository: FromDishka[MessageRepository],
+        summary_repository: FromDishka[SummaryRepository],
         index_service: FromDishka[IndexService],
     ) -> NotifyBotUsecase:
         return NotifyBotUsecase(
             bot_repository=bot_repository,
             user_bot_repository=user_bot_repository,
             message_repository=message_repository,
+            summary_repository=summary_repository,
             index_service=index_service,
         )
 
