@@ -1,7 +1,8 @@
 import json
 from typing import List
 from pydantic_ai import Agent
-from pydantic_ai.models import OpenAIModel
+from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers.openai import OpenAIProvider
 
 from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import config
@@ -14,7 +15,7 @@ class ParserAgent:
         self.__topic = topic
         self.__llm = OpenAIModel(
             model_name=config.OPENAI_MODEL_NAME,
-            api_key=config.OPENAI_API_KEY.get_secret_value()
+            provider=OpenAIProvider(api_key=config.OPENAI_API_KEY.get_secret_value())
         )
         self.__agent = self.__create_agent()
 

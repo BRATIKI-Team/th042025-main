@@ -1,5 +1,5 @@
 ﻿from pydantic_ai import Agent
-from pydantic_ai.models import OpenAIModel
+from pydantic_ai.models.openai import OpenAIModel
 from typing import List
 
 from src.domain.model.message_model import MessageModel
