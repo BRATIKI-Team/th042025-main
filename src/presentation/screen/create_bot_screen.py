@@ -6,8 +6,9 @@ from aiogram.types import CallbackQuery, Message
 from dishka import FromDishka
 
 from src.application.dto.create_bot_request import CreateBotRequest
-from src.application.usecase.create_bot_usecase import CreateBotUsecase
-from src.application.usecase.get_pending_source_usecase import GetPendingSourceUsecase
+from src.application.usecase.bot.create_bot_usecase import CreateBotUsecase
+from src.application.usecase.source.get_pending_source_usecase import GetPendingSourceUsecase
+from src.application.usecase.source.validate_topic_usecase import ValidateTopicUsecase
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
 from src.domain.value_object.bot_name_vo import BotNameVO
@@ -68,7 +69,10 @@ async def bot_name_handler(message: Message, state: FSMContext, bot: Bot) -> Non
 
 @router.message(CreateBotStatesGroup.bot_description)
 async def bot_description_handler(
-    message: Message, state: FSMContext, bot: Bot
+    message: Message,
+    state: FSMContext,
+    bot: Bot,
+    validate_topic_usecase: FromDishka[ValidateTopicUsecase],
 ) -> None:
     try:
         bot_description = BotDescriptionVO(value=message.text.strip())
@@ -79,7 +83,12 @@ async def bot_description_handler(
         )
         return
 
-    # TODO validate if bot description has enough details
+    if not await validate_topic_usecase.execute(topic=bot_description.value):
+        await bot.send_message(
+            text=f"Ошибка. Пожалуйста, введите более подробное описание бота.",
+            chat_id=message.chat.id,
+        )
+        return
 
     text = (
         "Шаг 3/5\n\n" "Выберите период, за который будет формироваться сводка новостей."

@@ -1,6 +1,11 @@
 from dishka import FromDishka, Provider, Scope, provide
 from telethon import TelegramClient as TelethonTelegramClient
+from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai.models import Model
 
+from src.application.agents.source_searcher.source_searche_agent import SourceSearcherAgent
+from src.application.agents.topic_validator.topic_validator_agent import TopicValidatorAgent
 from src.infrastructure.config import config
 from src.infrastructure.tg.telegram_client import TelegramClient
 
@@ -31,3 +36,19 @@ class UtilsContainer(Provider):
         self, client: FromDishka[TelethonTelegramClient]
     ) -> TelegramClient:
         return TelegramClient(client=client)
+
+    @provide(scope=Scope.APP)
+    def provide_openai_model(self) -> Model:
+        return OpenAIModel(
+            model_name=config.OPENAI_MODEL_NAME,
+            provider=OpenAIProvider(api_key=config.OPENAI_API_KEY.get_secret_value()),
+        )
+
+    @provide(scope=Scope.APP)
+    def provide_validate_topic_agent(self, llm: FromDishka[Model]) -> TopicValidatorAgent:
+        return TopicValidatorAgent(llm=llm)
+
+    @provide(scope=Scope.APP)
+    def provide_source_searcher_agent(self, llm: FromDishka[Model]) -> SourceSearcherAgent:
+        return SourceSearcherAgent(llm=llm)
+

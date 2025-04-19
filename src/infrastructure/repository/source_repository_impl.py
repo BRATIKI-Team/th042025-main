@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 
+from src.application.agents.topic_validator.topic_validator_agent import TopicValidatorAgent
 from src.domain.enum.source_status_enum import SourceStatus
 from src.domain.model.source_model import SourceModel
 from src.domain.repository import SourceRepository
@@ -11,6 +12,9 @@ from src.infrastructure.dao.bot_dao import BotDAO
 
 
 class SourceRepositoryImpl(SourceRepository):
+    def __init__(self, validate_topic_agent: TopicValidatorAgent):
+        self.__validate_topic_agent = validate_topic_agent
+
     async def get_source_by_status(self, status: SourceStatus) -> SourceModel | None:
         dao = await SourceDAO.objects().get(SourceDAO.status == status.value).first()
 
@@ -101,3 +105,6 @@ class SourceRepositoryImpl(SourceRepository):
             await SourceDAO.update({SourceDAO.last_hit_datetime: current_time}).where(
                 SourceDAO.id == source_id
             )
+
+    async def validate_topic(self, topic: str) -> bool:
+        return await self.__validate_topic_agent.execute(topic=topic)

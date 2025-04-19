@@ -1,16 +1,15 @@
 from typing import List
 from pydantic_ai import Agent
 from pydantic_ai.common_tools.duckduckgo import duckduckgo_search_tool
+from pydantic_ai.models import Model
 
 from src.application.dto.source_generate_response import SourceGenerateResponse
-from src.infrastructure.config import Config
 from src.application.agents.source_searcher import system_prompt
 
 
 class SourceSearcherAgent:
-    def __init__(self, topic: str):
-        self.__topic = topic
-        self.__llm_model_name = Config.OPENAI_MODEL_NAME
+    def __init__(self, llm: Model):
+        self.__llm = llm
         self.__agent = self.__create_agent()
 
     def __create_agent(self) -> Agent:
@@ -19,7 +18,7 @@ class SourceSearcherAgent:
         """
         tools = [duckduckgo_search_tool]
         return Agent(
-            model=self.__llm_model_name,
+            model=self.__llm,
             tools=tools,
             deps_type=str,
             output_type=List[SourceGenerateResponse],
@@ -27,9 +26,9 @@ class SourceSearcherAgent:
             retries=10,  # Up to 10 retries because of the rate limit
         )
 
-    async def execute(self) -> List[SourceGenerateResponse]:
+    async def execute(self, topic: str) -> List[SourceGenerateResponse]:
         """
         Execute the agent to search for Telegram channels.
         """
-        result = await self.__agent.run(self.__topic)
+        result = await self.__agent.run(topic)
         return result.output

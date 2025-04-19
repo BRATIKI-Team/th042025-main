@@ -1,12 +1,11 @@
 from typing import List
 from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.core.tools import QueryEngineTool
-from llama_index.core.llms import OpenAI
+from llama_index.llms.openai import OpenAI
 import json
 
 from src.application.dto.summary_request import SummaryRequest
 from src.application.services import IndexService
-from src.infrastructure.config import Config
 from src.application.agents.sanytizer import system_prompt
 
 
@@ -16,12 +15,15 @@ class SanytizerAgent:
         bot_id: str,
         summaries_to_sanitize: List[SummaryRequest],
         index_service: IndexService,
+        api_key: str,
+        model_name: str
     ):
         self.__bot_id = bot_id
         self.__summaries_to_sanitize = summaries_to_sanitize
         self.__index_service = index_service
         self.__llm = OpenAI(
-            api_key=Config.OPENAI_API_KEY, model=Config.OPENAI_MODEL_NAME
+            api_key=api_key, 
+            model=model_name
         )
         self.__agent = self.__create_agent()
 
