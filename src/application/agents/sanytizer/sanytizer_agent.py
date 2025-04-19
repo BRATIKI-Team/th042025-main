@@ -25,6 +25,9 @@ class SanytizerAgent:
 
 
     def __create_agent(self) -> FunctionAgent:
+        """
+        Create an agent for sanitizing summaries.
+        """
         tools = [self.__create_query_engine_tool(summary) for summary in self.__summaries_to_sanitize]
         return FunctionAgent.from_tools(
             system_prompt=system_prompt,
@@ -35,6 +38,9 @@ class SanytizerAgent:
 
 
     def __create_query_engine_tool(self, summary: SummaryRequest) -> QueryEngineTool:
+        """
+        Create a query engine tool for a summary.
+        """
         index = self.__index_service.get_index(self.__bot_id)
         query_engine = index.as_query_engine()
         return QueryEngineTool.from_defaults(
