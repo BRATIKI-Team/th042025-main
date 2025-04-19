@@ -1,3 +1,5 @@
+import json
+
 from piccolo.table import Table
 from piccolo.columns import BigSerial, Varchar, ForeignKey, Timestamp, JSON, Text
 
@@ -25,6 +27,7 @@ class MessageDAO(Table):
         Returns:
             MessageModel: The converted model
         """
+        metadata = json.loads(dao.metadata) if dao.metadata else None
         return MessageModel(
             id=dao.id,
             source_id=dao.source_id,
@@ -32,5 +35,5 @@ class MessageDAO(Table):
             external_id=dao.external_id,
             created_at=dao.created_at,
             published_at=dao.published_at,
-            metadata=dao.metadata,
+            metadata=metadata,
         )

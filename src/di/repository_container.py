@@ -1,8 +1,6 @@
 from dishka import FromDishka, Provider, Scope, provide
 
-from src.application.agents.source_searcher.source_searcher_agent import (
-    SourceSearcherAgent,
-)
+from src.application.agents.source_searcher import SourceSearcherAgent
 from src.application.agents.topic_validator.topic_validator_agent import (
     TopicValidatorAgent,
 )

@@ -44,7 +44,7 @@ class BotRepositoryImpl(BotRepository):
         Returns:
             BotModel: The bot model, or None if not found
         """
-        dao = await BotDAO.objects().get(BotDAO.id == bot_id).first()
+        dao = await BotDAO.objects().get(BotDAO.id == bot_id)
 
         if dao is None:
             return None

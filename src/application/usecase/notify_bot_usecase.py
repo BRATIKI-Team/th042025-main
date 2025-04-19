@@ -6,6 +6,8 @@ from src.application.usecase.update_bot_last_notified_usecase import (
     UpdateBotLastNotifiedUsecase,
 )
 from src.domain.model.message_model import MessageModel
+from src.domain.repository import BotRepository
+from src.domain.repository.message_repository import MessageRepository
 
 
 class NotifyBotUsecase:
@@ -14,14 +16,14 @@ class NotifyBotUsecase:
     """
 
     def __init__(
-        self,
-        get_bot_by_id_usecase: GetBotByIdUsecase,
-        update_bot_last_notified_usecase: UpdateBotLastNotifiedUsecase,
+            self,
+            bot_repository: BotRepository,
+            message_repository: MessageRepository,
     ):
-        self._get_bot_by_id_usecase = get_bot_by_id_usecase
-        self._update_bot_last_notified_usecase = update_bot_last_notified_usecase
+        self._bot_repository = bot_repository
+        self._message_repository = message_repository
 
-    async def execute(self, bot_id: int, messages: List[MessageModel]) -> None:
+    async def execute(self, bot_id: int) -> None:
         """
         Execute the usecase.
 
@@ -30,11 +32,11 @@ class NotifyBotUsecase:
             messages: The messages to notify about
         """
         # Get the bot
-        bot = await self._get_bot_by_id_usecase.execute(bot_id)
+        bot = await self._bot_repository.read_by_id(bot_id)
         if not bot:
             return
-
-        # TODO: Implement actual notification logic here
+        
+        messages = await self._message_repository.read_by_bot_and_filter_by_created(bot.id, bot.last_notified_at)
         # This could involve sending a message to a Telegram bot,
         # posting to a webhook, etc.
 
@@ -44,4 +46,4 @@ class NotifyBotUsecase:
             print(f"  - {message.content[:50]}...")
 
         # Update the bot's last_notified_at
-        await self._update_bot_last_notified_usecase.execute(bot_id, datetime.now())
+        await self._bot_repository.update_last_notified_at(bot_id, datetime.now())
