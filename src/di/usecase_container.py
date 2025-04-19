@@ -107,12 +107,12 @@ class UsecaseContainer(Provider):
     @provide(scope=Scope.APP)
     def notify_bot_usecase(
         self,
-        get_bot_by_id_usecase: FromDishka[GetBotByIdUsecase],
-        update_bot_last_notified_usecase: FromDishka[UpdateBotLastNotifiedUsecase],
+        bot_repository: FromDishka[BotRepository],
+        message_repository: FromDishka[MessageRepository],
     ) -> NotifyBotUsecase:
         return NotifyBotUsecase(
-            get_bot_by_id_usecase=get_bot_by_id_usecase,
-            update_bot_last_notified_usecase=update_bot_last_notified_usecase,
+            bot_repository=bot_repository,
+            message_repository=message_repository,
         )
 
     @provide(scope=Scope.APP)

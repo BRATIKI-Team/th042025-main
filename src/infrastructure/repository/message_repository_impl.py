@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Optional
 from datetime import datetime
 
 from src.domain.model.message_model import MessageModel
@@ -9,12 +9,12 @@ from src.infrastructure.dao.message_dao import MessageDAO
 
 class MessageRepositoryImpl(MessageRepository):
     async def create(
-        self,
-        source_id: int,
-        content: str,
-        external_id: str,
-        metadata: Dict[str, Any],
-        published_at: datetime | None = None,
+            self,
+            source_id: int,
+            content: str,
+            external_id: str,
+            metadata: Dict[str, Any],
+            published_at: datetime | None = None
     ) -> MessageModel:
         """
         Create a new message in the database.
@@ -52,9 +52,7 @@ class MessageRepositoryImpl(MessageRepository):
         """
         Get all messages for a specific source.
         """
-        messages = (
-            await MessageDAO.select().where(MessageDAO.source_id == source_id).execute()
-        )
+        messages = await MessageDAO.select().where(MessageDAO.source_id == source_id).execute()
 
         return [
             MessageModel(
@@ -73,11 +71,7 @@ class MessageRepositoryImpl(MessageRepository):
         """
         Check if a message with the given external_id already exists.
         """
-        message = (
-            await MessageDAO.objects()
-            .get(MessageDAO.external_id == external_id)
-            .first()
-        )
+        message = await MessageDAO.objects().get(MessageDAO.external_id == external_id).first()
 
         return message is not None
 
@@ -95,9 +89,12 @@ class MessageRepositoryImpl(MessageRepository):
         )
 
         # Extract external_ids from the result
-        return {message["external_id"] for message in existing_messages}
+        return {message['external_id'] for message in existing_messages}
 
-    async def create_many(self, messages: List[Dict[str, Any]]) -> List[MessageModel]:
+    async def create_many(
+            self,
+            messages: List[Dict[str, Any]]
+    ) -> List[MessageModel]:
         """
         Create multiple messages in the database in a single operation.
         Returns the created message models.
@@ -133,10 +130,36 @@ class MessageRepositoryImpl(MessageRepository):
 
         # Convert to models
         return [
-            MessageDAO.from_dao(
-                MessageDAO.from_dict(
-                    {**dao, "metadata": json.loads(dao.get("metadata", "{}"))}
-                )
-            )
+            MessageDAO.from_dao(dao)
             for dao in inserted_daos
+        ]
+
+    async def read_by_bot_and_filter_by_created(
+            self,
+            bot_id: int,
+            min_created_at: Optional[datetime] = None
+    ) -> List[MessageModel]:
+        """
+        Retrieve all messages as MessageModel instances for sources associated with the specified bot_id,
+        optionally filtered by creation date if min_created_at is provided.
+
+        Args:
+            bot_id: The ID of the bot whose sources' messages are to be retrieved.
+            min_created_at: Optional minimum creation date for messages (if None, no date filter is applied).
+
+        Returns:
+            List[MessageModel]: A list of MessageModel objects.
+        """
+        query = MessageDAO.objects()
+
+        # Фильтрация по bot_id через foreign key source_id
+        query = query.where(MessageDAO.source_id.bot_id == bot_id)
+
+        if min_created_at is not None:
+            query = query.where(MessageDAO.created_at > min_created_at)
+
+        messages = await query
+        return [
+            MessageDAO.from_dao(dao)
+            for dao in messages
         ]

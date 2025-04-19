@@ -7,7 +7,7 @@ class GetPendingSourceUsecase:
     def __init__(self, source_repository: SourceRepository):
         self._source_repository = source_repository
 
-    async def execute(self) -> SourceModel | None:
+    async def execute(self, bot_id: int) -> SourceModel | None:
         return await self._source_repository.get_source_by_status(
-            status=SourceStatus.PENDING
+            bot_id=bot_id, status=SourceStatus.PENDING
         )

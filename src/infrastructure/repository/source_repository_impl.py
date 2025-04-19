@@ -1,17 +1,14 @@
 from datetime import datetime
 from typing import List
 
-from src.application.agents.source_searcher.source_searcher_agent import (
-    SourceSearcherAgent,
-)
+from src.application.agents.source_searcher import SourceSearcherAgent
 from src.application.agents.topic_validator.topic_validator_agent import (
     TopicValidatorAgent,
 )
 from src.domain.enum.source_status_enum import SourceStatus
 from src.domain.enum.source_type_enum import SourceType
-from src.domain.model.source_model import SourceModel
-from src.domain.repository import SourceRepository
 from src.domain.model.grouped_source_model import GroupedSourceModel
+from src.domain.model.source_model import SourceModel
 from src.domain.repository.source_repository import SourceRepository
 from src.infrastructure.dao.source_dao import SourceDAO
 
@@ -25,8 +22,14 @@ class SourceRepositoryImpl(SourceRepository):
         self.__validate_topic_agent = validate_topic_agent
         self.__search_sources_agent = search_sources_agent
 
-    async def get_source_by_status(self, status: SourceStatus) -> SourceModel | None:
-        dao = await SourceDAO.objects().get(SourceDAO.status == status.value).first()
+    async def get_source_by_status(
+        self, bot_id: int, status: SourceStatus
+    ) -> SourceModel | None:
+        dao = (
+            await SourceDAO.objects()
+            .get((SourceDAO.status == status.value) & (SourceDAO.bot_id == bot_id))
+            .first()
+        )
 
         if dao is None:
             return None
