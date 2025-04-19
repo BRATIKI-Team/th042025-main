@@ -7,6 +7,8 @@ from src.domain.value_object.bot_token_vo import BotTokenVO
 
 
 class CreateBotRequest(BaseModel):
+    model_config = {"arbitrary_types_allowed": True}
+
     user_id: int
     name: BotNameVO
     description: BotDescriptionVO
