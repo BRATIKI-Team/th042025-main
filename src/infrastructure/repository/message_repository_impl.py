@@ -9,12 +9,12 @@ from src.infrastructure.dao.message_dao import MessageDAO
 
 class MessageRepositoryImpl(MessageRepository):
     async def create(
-        self, 
-        source_id: int, 
-        content: str, 
-        external_id: str, 
+        self,
+        source_id: int,
+        content: str,
+        external_id: str,
         metadata: Dict[str, Any],
-        published_at: datetime | None = None
+        published_at: datetime | None = None,
     ) -> MessageModel:
         """
         Create a new message in the database.
@@ -26,7 +26,7 @@ class MessageRepositoryImpl(MessageRepository):
                 published_at = datetime.fromisoformat(metadata["date"])
             except (ValueError, TypeError):
                 pass
-        
+
         message_dao = await MessageDAO.insert(
             MessageDAO(
                 source_id=source_id,
@@ -34,10 +34,10 @@ class MessageRepositoryImpl(MessageRepository):
                 external_id=external_id,
                 created_at=datetime.now(),
                 published_at=published_at,
-                metadata=metadata
+                metadata=metadata,
             )
         ).execute()
-        
+
         return MessageModel(
             id=message_dao.id,
             source_id=message_dao.source_id,
@@ -45,15 +45,17 @@ class MessageRepositoryImpl(MessageRepository):
             external_id=message_dao.external_id,
             created_at=message_dao.created_at,
             published_at=message_dao.published_at,
-            metadata=message_dao.metadata
+            metadata=message_dao.metadata,
         )
-    
+
     async def read_by_source_id(self, source_id: int) -> List[MessageModel]:
         """
         Get all messages for a specific source.
         """
-        messages = await MessageDAO.select().where(MessageDAO.source_id == source_id).execute()
-        
+        messages = (
+            await MessageDAO.select().where(MessageDAO.source_id == source_id).execute()
+        )
+
         return [
             MessageModel(
                 id=message.id,
@@ -62,19 +64,23 @@ class MessageRepositoryImpl(MessageRepository):
                 external_id=message.external_id,
                 created_at=message.created_at,
                 published_at=message.published_at,
-                metadata=message.metadata
+                metadata=message.metadata,
             )
             for message in messages
         ]
-    
+
     async def exists_by_external_id(self, external_id: str) -> bool:
         """
         Check if a message with the given external_id already exists.
         """
-        message = await MessageDAO.objects().get(MessageDAO.external_id == external_id).first()
-        
+        message = (
+            await MessageDAO.objects()
+            .get(MessageDAO.external_id == external_id)
+            .first()
+        )
+
         return message is not None
-    
+
     async def exists_by_external_ids(self, external_ids: Set[str]) -> Set[str]:
         """
         Check which of the given external_ids already exist in the database.
@@ -82,28 +88,25 @@ class MessageRepositoryImpl(MessageRepository):
         """
         if not external_ids:
             return set()
-        
+
         # Используем правильный синтаксис для IN запроса в Piccolo
         existing_messages = await MessageDAO.select(MessageDAO.external_id).where(
             MessageDAO.external_id.is_in(list(external_ids))
         )
-        
+
         # Extract external_ids from the result
-        return {message['external_id'] for message in existing_messages}
-    
-    async def create_many(
-        self,
-        messages: List[Dict[str, Any]]
-    ) -> List[MessageModel]:
+        return {message["external_id"] for message in existing_messages}
+
+    async def create_many(self, messages: List[Dict[str, Any]]) -> List[MessageModel]:
         """
         Create multiple messages in the database in a single operation.
         Returns the created message models.
         """
         if not messages:
             return []
-        
+
         query = MessageDAO.insert()
-        
+
         # Prepare DAO objects for bulk insert
         for msg in messages:
             # Extract published_at from metadata if not provided
@@ -113,7 +116,7 @@ class MessageRepositoryImpl(MessageRepository):
                     published_at = datetime.fromisoformat(msg["metadata"]["date"])
                 except (ValueError, TypeError):
                     pass
-            
+
             query.add(
                 MessageDAO(
                     source_id=msg["source_id"],
@@ -121,18 +124,19 @@ class MessageRepositoryImpl(MessageRepository):
                     external_id=msg["external_id"],
                     created_at=datetime.now(),
                     published_at=published_at,
-                    metadata=msg["metadata"]
+                    metadata=msg["metadata"],
                 )
             )
-        
+
         # Perform bulk insert
         inserted_daos = await query.returning(*MessageDAO.all_columns())
 
         # Convert to models
         return [
-            MessageDAO.from_dao(MessageDAO.from_dict({
-                **dao,
-                "metadata": json.loads(dao.get("metadata", "{}"))
-            }))
+            MessageDAO.from_dao(
+                MessageDAO.from_dict(
+                    {**dao, "metadata": json.loads(dao.get("metadata", "{}"))}
+                )
+            )
             for dao in inserted_daos
         ]

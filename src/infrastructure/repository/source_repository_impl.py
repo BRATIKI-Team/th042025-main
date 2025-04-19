@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from src.application.agents.source_searcher.source_searche_agent import (
+from src.application.agents.source_searcher.source_searcher_agent import (
     SourceSearcherAgent,
 )
 from src.application.agents.topic_validator.topic_validator_agent import (

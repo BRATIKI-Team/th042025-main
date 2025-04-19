@@ -5,10 +5,7 @@ from src.application.agents.topic_validator.system_prompt import system_prompt
 
 
 class TopicValidatorAgent:
-    def __init__(
-        self,
-        llm: Model
-    ):
+    def __init__(self, llm: Model):
         self.__llm = llm
         self.__agent = self.__create_agent()
 
@@ -21,7 +18,7 @@ class TopicValidatorAgent:
             tools=[],  # No external tools needed for validation
             deps_type=str,
             output_type=bool,
-            system_prompt=system_prompt
+            system_prompt=system_prompt,
         )
 
     async def execute(self, topic: str) -> bool:

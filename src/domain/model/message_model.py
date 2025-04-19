@@ -10,4 +10,4 @@ class MessageModel(BaseModel):
     external_id: str
     created_at: datetime
     published_at: Optional[datetime] = None
-    metadata: Dict[str, Any] 
+    metadata: Dict[str, Any]
