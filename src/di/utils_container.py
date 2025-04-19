@@ -8,7 +8,7 @@ from src.application.agents.source_searcher import SourceSearcherAgent
 from src.application.agents.topic_validator.topic_validator_agent import TopicValidatorAgent
 from src.infrastructure.config import config
 from src.infrastructure.tg.telegram_client import TelegramClient
-
+from src.domain.repository.telegram_repository import TelegramRepository
 
 class UtilsContainer(Provider):
     @provide(scope=Scope.APP)
@@ -52,6 +52,7 @@ class UtilsContainer(Provider):
 
     @provide(scope=Scope.APP)
     def provide_source_searcher_agent(
-        self, llm: FromDishka[Model]
+        self,
+        llm: FromDishka[Model],
     ) -> SourceSearcherAgent:
         return SourceSearcherAgent(llm=llm)
