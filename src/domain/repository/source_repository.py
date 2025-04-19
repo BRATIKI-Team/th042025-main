@@ -10,15 +10,16 @@ class SourceRepository(ABC):
     @abstractmethod
     async def get_source_by_status(self, status: SourceStatus) -> SourceModel | None:
         pass
-    
+
     @abstractmethod
-    async def get_grouped_sources_by_notification_period(self) -> List[GroupedSourceModel]:
+    async def get_grouped_sources_by_notification_period(
+        self,
+    ) -> List[GroupedSourceModel]:
         """
         Get sources grouped by type and url, with the minimum notification period
         and the earliest last_hit_datetime.
         """
-        pass
-    
+
     @abstractmethod
     async def update_last_hit_datetime(self, source_ids: List[int]) -> None:
         """
@@ -27,4 +28,12 @@ class SourceRepository(ABC):
 
     @abstractmethod
     async def validate_topic(self, topic: str) -> bool:
+        pass
+
+    @abstractmethod
+    async def search_sources(self, bot_id: int, topic: str) -> None:
+        pass
+
+    @abstractmethod
+    async def change_status(self, id: int, status: SourceStatus) -> None:
         pass

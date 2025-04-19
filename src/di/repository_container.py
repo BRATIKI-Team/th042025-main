@@ -1,6 +1,11 @@
 from dishka import FromDishka, Provider, Scope, provide
 
-from src.application.agents.topic_validator.topic_validator_agent import TopicValidatorAgent
+from src.application.agents.source_searcher.source_searche_agent import (
+    SourceSearcherAgent,
+)
+from src.application.agents.topic_validator.topic_validator_agent import (
+    TopicValidatorAgent,
+)
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.chroma_repository import ChromaRepository
 from src.domain.repository.message_repository import MessageRepository
@@ -26,9 +31,14 @@ class RepositoryContainer(Provider):
 
     @provide(scope=Scope.APP)
     def source_repository(
-        self, validate_topic_agent: FromDishka[TopicValidatorAgent]
+        self,
+        validate_topic_agent: FromDishka[TopicValidatorAgent],
+        search_sources_agent: FromDishka[SourceSearcherAgent],
     ) -> SourceRepository:
-        return SourceRepositoryImpl(validate_topic_agent=validate_topic_agent)
+        return SourceRepositoryImpl(
+            validate_topic_agent=validate_topic_agent,
+            search_sources_agent=search_sources_agent,
+        )
 
     @provide(scope=Scope.APP)
     def message_repository(self) -> MessageRepository:

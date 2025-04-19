@@ -1,6 +1,5 @@
 from piccolo.table import Table
 from piccolo.columns import BigSerial, Varchar, Integer, ForeignKey, Timestamp
-from datetime import datetime
 
 from src.domain.enum.source_status_enum import SourceStatus
 from src.domain.model.source_model import SourceModel
@@ -8,14 +7,14 @@ from src.infrastructure.dao.bot_dao import BotDAO
 
 
 class SourceDAO(Table):
-    id: int = BigSerial(primary_key=True)
-    bot_id: int = ForeignKey(BotDAO)
-    name: str = Varchar(length=255)
-    url: str = Varchar(length=255)
-    description: str = Varchar(length=255)
-    type: int = Integer(length=1)
-    status: int = Integer(length=1)
-    last_hit_datetime: datetime = Timestamp(null=True, default=None)
+    id: BigSerial = BigSerial(primary_key=True)
+    bot_id: ForeignKey = ForeignKey(BotDAO)
+    name: Varchar = Varchar(length=255)
+    url: Varchar = Varchar(length=255)
+    description: Varchar = Varchar(length=255)
+    type: Integer = Integer(length=1)
+    status: Integer = Integer(length=1)
+    last_hit_datetime: Timestamp = Timestamp(null=True, default=None)
 
     @staticmethod
     def from_dao(dao: "SourceDAO") -> SourceModel:

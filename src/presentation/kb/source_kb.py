@@ -1,16 +1,18 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-def select_sources_kb(
-    text: str = "Перейти к выбору источников", can_stop_searching: bool = False
-) -> InlineKeyboardMarkup:
+def source_kb(source_id: int, can_stop_searching: bool = False) -> InlineKeyboardMarkup:
     kb = [
         [
             InlineKeyboardButton(
-                text=text,
-                callback_data="select_sources",
+                text="Принять ✅", callback_data=f"accept_source_{source_id}   "
             )
-        ]
+        ],
+        [
+            InlineKeyboardButton(
+                text="Отклонить ❌", callback_data=f"reject_source_{source_id}"
+            )
+        ],
     ]
 
     if can_stop_searching:

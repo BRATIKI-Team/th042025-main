@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import List
+from typing import Optional
 
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
@@ -24,28 +24,27 @@ class BotRepository(ABC):
         token: BotTokenVO,
     ) -> int:
         """Create bot and return its id"""
-        pass
-    
+
     @abstractmethod
-    async def read_by_id(self, bot_id: int) -> BotModel:
+    async def read_by_id(self, bot_id: int) -> Optional[BotModel]:
         """
         Get a bot by its ID.
-        
+
         Args:
             bot_id: The ID of the bot to get
-            
+
         Returns:
             BotModel: The bot model, or None if not found
         """
-        pass
-    
+
     @abstractmethod
-    async def update_last_notified_at(self, bot_id: int, last_notified_at: datetime) -> None:
+    async def update_last_notified_at(
+        self, bot_id: int, last_notified_at: datetime
+    ) -> None:
         """
         Update the last_notified_at timestamp for a bot.
-        
+
         Args:
             bot_id: The ID of the bot to update
             last_notified_at: The new timestamp
         """
-        pass

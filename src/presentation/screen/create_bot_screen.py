@@ -7,7 +7,12 @@ from dishka import FromDishka
 
 from src.application.dto.create_bot_request import CreateBotRequest
 from src.application.usecase.bot.create_bot_usecase import CreateBotUsecase
-from src.application.usecase.source.get_pending_source_usecase import GetPendingSourceUsecase
+from src.application.usecase.source.accept_source_usecase import AcceptSourceUsecase
+from src.application.usecase.source.get_pending_source_usecase import (
+    GetPendingSourceUsecase,
+)
+from src.application.usecase.source.reject_source_usecase import RejectSourceUsecase
+from src.application.usecase.source.search_sources_usecase import SearchSourcesUsecase
 from src.application.usecase.source.validate_topic_usecase import ValidateTopicUsecase
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
@@ -15,6 +20,7 @@ from src.domain.value_object.bot_name_vo import BotNameVO
 from src.domain.value_object.bot_token_vo import BotTokenVO
 from src.presentation.kb.bot_notification_period_kb import bot_notification_period_kb
 from src.presentation.kb.select_sources_kb import select_sources_kb
+from src.presentation.kb.source_kb import source_kb
 
 router = Router()
 
@@ -170,7 +176,9 @@ async def bot_token_handler(
         reply_markup=select_sources_kb(),
     )
 
-    await state.update_data(bot_id=bot_id, bot_token=bot_token)
+    await state.update_data(
+        bot_id=bot_id, bot_token=bot_token, approved_at_least_one_source=False
+    )
     await state.set_state(CreateBotStatesGroup.bot_sources)
 
 
@@ -180,12 +188,85 @@ async def select_sources_handler(
     state: FSMContext,
     bot: Bot,
     get_pending_source_usecase: FromDishka[GetPendingSourceUsecase],
+    search_sources_usecase: FromDishka[SearchSourcesUsecase],
 ) -> None:
+    bot_id = cast(int, await state.get_value("bot_id"))
+    approved_at_least_one_source = cast(
+        bool, await state.get_value("approved_at_least_one_source")
+    )
+
     pending_source = await get_pending_source_usecase.execute()
+
+    if pending_source is None:
+        await search_sources_usecase.execute(bot_id=bot_id)
+
+        pending_source = await get_pending_source_usecase.execute()
 
     if pending_source is None:
         await bot.send_message(
             text="Нет доступных источников данных. Попробуйте позже.",
             chat_id=callback_query.message.chat.id,
+            reply_markup=select_sources_kb(
+                text="Обновить список источников",
+                can_stop_searching=approved_at_least_one_source,
+            ),
         )
+
         return
+
+    text = (
+        f"Источник данных: {pending_source.name}\n\n"
+        f"Описание: {pending_source.description}\n\n"
+        f"Ссылка: {pending_source.url}\n\n"
+    )
+
+    await bot.send_message(
+        text=text,
+        chat_id=callback_query.message.chat.id,
+        reply_markup=source_kb(
+            source_id=pending_source.id, can_stop_searching=approved_at_least_one_source
+        ),
+    )
+
+
+@router.callback_query(F.data.startswith("accept_source_"))
+async def accept_source_handler(
+    callback_query: CallbackQuery,
+    state: FSMContext,
+    accept_source_usecase: FromDishka[AcceptSourceUsecase],
+) -> None:
+    source_id = int(callback_query.data.split("_")[-1])
+
+    await accept_source_usecase.execute(source_id=source_id)
+
+    await state.update_data(approved_at_least_one_source=True)
+
+    await callback_query.message.edit_text(
+        text="Источник данных принят. Вы можете принять ещё один источник или остановить поиск.",
+        reply_markup=select_sources_kb(
+            text="Продолжить выбор источников", can_stop_searching=True
+        ),
+    )
+
+
+@router.callback_query(F.data.startswith("reject_source_"))
+async def reject_source_handler(
+    callback_query: CallbackQuery,
+    state: FSMContext,
+    reject_source_usecase: FromDishka[RejectSourceUsecase],
+) -> None:
+    source_id = int(callback_query.data.split("_")[-1])
+
+    await reject_source_usecase.execute(source_id=source_id)
+
+    approved_at_least_one_source = cast(
+        bool, await state.get_value("approved_at_least_one_source")
+    )
+
+    await callback_query.message.edit_text(
+        text="Источник данных отклонен.",
+        reply_markup=select_sources_kb(
+            text="Продолжить выбор источников",
+            can_stop_searching=approved_at_least_one_source,
+        ),
+    )
