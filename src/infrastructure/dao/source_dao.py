@@ -1,5 +1,6 @@
 from piccolo.table import Table
-from piccolo.columns import BigSerial, Varchar, Integer, ForeignKey
+from piccolo.columns import BigSerial, Varchar, Integer, ForeignKey, Timestamp
+from datetime import datetime
 
 from src.domain.enum.source_status_enum import SourceStatus
 from src.domain.model.source_model import SourceModel
@@ -14,6 +15,7 @@ class SourceDAO(Table):
     description: str = Varchar(length=255)
     type: int = Integer(length=1)
     status: int = Integer(length=1)
+    last_hit_datetime: datetime = Timestamp(null=True, default=None)
 
     @staticmethod
     def from_dao(dao: "SourceDAO") -> SourceModel:
@@ -23,4 +25,6 @@ class SourceDAO(Table):
             status=SourceStatus(dao.status),
             url=dao.url,
             description=dao.description,
+            type=dao.type,
+            last_hit_datetime=dao.last_hit_datetime,
         )
