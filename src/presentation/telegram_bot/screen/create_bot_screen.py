@@ -7,6 +7,7 @@ from dishka import FromDishka
 
 from src.application.dto.create_bot_request import CreateBotRequest
 from src.application.usecase.bot.create_bot_usecase import CreateBotUsecase
+from src.application.usecase.bot.is_token_unqiue_usecase import IsTokenUniqueUsecase
 from src.application.usecase.source.accept_source_usecase import AcceptSourceUsecase
 from src.application.usecase.source.get_pending_source_usecase import (
     GetPendingSourceUsecase,
@@ -18,10 +19,12 @@ from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.value_object.bot_description_vo import BotDescriptionVO
 from src.domain.value_object.bot_name_vo import BotNameVO
 from src.domain.value_object.bot_token_vo import BotTokenVO
-from src.presentation.kb.bot_notification_period_kb import bot_notification_period_kb
-from src.presentation.kb.select_sources_kb import select_sources_kb
-from src.presentation.kb.source_kb import source_kb
-from src.presentation.kb.to_menu_kb import to_menu_kb
+from src.presentation.telegram_bot.kb.bot_notification_period_kb import (
+    bot_notification_period_kb,
+)
+from src.presentation.telegram_bot.kb.select_sources_kb import select_sources_kb
+from src.presentation.telegram_bot.kb.source_kb import source_kb
+from src.presentation.telegram_bot.kb.to_menu_kb import to_menu_kb
 
 router = Router()
 
@@ -174,6 +177,7 @@ async def bot_token_handler(
     state: FSMContext,
     bot: Bot,
     create_bot_usecase: FromDishka[CreateBotUsecase],
+    is_token_unique_usecase: FromDishka[IsTokenUniqueUsecase],
 ) -> None:
     if message.text.strip() == "/cancel":
         return await cancel_handler(message, state)
@@ -192,7 +196,17 @@ async def bot_token_handler(
         )
         return
 
-    # TODO check if bot token is valid
+    if not await is_token_unique_usecase.execute(token=bot_token.value):
+        text = (
+            "Ошибка. Токен уже используется другим ботом. Пожалуйста, попробуйте другой токен.\n\n"
+            "Если вы хотите остановить создание бота, введите команду /cancel"
+        )
+
+        await bot.send_message(
+            text=text,
+            chat_id=message.chat.id,
+        )
+        return
 
     bot_id = await create_bot_usecase.execute(
         request=CreateBotRequest(

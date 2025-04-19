@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.enum.bot_status_enum import BotStatus
@@ -13,6 +13,14 @@ from src.infrastructure.dao.bot_dao import BotDAO
 
 
 class BotRepositoryImpl(BotRepository):
+    async def get_bot_by_token(self, token: str) -> Optional[BotModel]:
+        dao = await BotDAO.objects().get(BotDAO.token == token).first()
+
+        if dao is None:
+            return None
+
+        return BotDAO.from_dao(dao)
+
     async def has_bot(self, user_id: int) -> bool:
         dao = await BotDAO.objects().get(BotDAO.user_id == user_id).first()
 
@@ -87,3 +95,8 @@ class BotRepositoryImpl(BotRepository):
             page=page,
             page_size=page_size,
         )
+
+    async def get_active_bots(self) -> List[BotModel]:
+        daos = await BotDAO.objects().where(BotDAO.status == BotStatus.ACTIVE.value)
+
+        return [BotDAO.from_dao(dao) for dao in daos]

@@ -4,10 +4,18 @@ from dishka.integrations.aiogram import AiogramProvider, setup_dishka
 
 from src.di.container import init_container
 from src.infrastructure.config import config
-from src.presentation.command.start_command import router as start_command_router
-from src.presentation.screen.create_bot_screen import router as create_bot_screen_router
-from src.presentation.screen.manage_bot_screen import router as manage_bot_screen_router
-from src.presentation.screen.menu_screen import router as menu_screen_router
+from src.presentation.telegram_bot.command.start_command import (
+    router as start_command_router,
+)
+from src.presentation.telegram_bot.screen.create_bot_screen import (
+    router as create_bot_screen_router,
+)
+from src.presentation.telegram_bot.screen.manage_bot_screen import (
+    router as manage_bot_screen_router,
+)
+from src.presentation.telegram_bot.screen.menu_screen import (
+    router as menu_screen_router,
+)
 
 
 async def main() -> None:

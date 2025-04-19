@@ -20,10 +20,10 @@ class NotifyBotUsecase:
     """
 
     def __init__(
-        self, 
+        self,
         bot_repository: BotRepository,
         user_bot_repository: UserBotRepository,
-        message_repository: MessageRepository
+        message_repository: MessageRepository,
     ):
         self._bot_repository = bot_repository
         self._user_bot_repository = user_bot_repository
@@ -41,8 +41,10 @@ class NotifyBotUsecase:
         bot = await self._bot_repository.read_by_id(bot_id)
         if not bot:
             return
-        
-        messages = await self._message_repository.read_by_bot_and_filter_by_created(bot.id, bot.last_notified_at)
+
+        messages = await self._message_repository.read_by_bot_and_filter_by_created(
+            bot.id, bot.last_notified_at
+        )
         # This could involve sending a message to a Telegram bot,
         # posting to a webhook, etc.
 
@@ -51,52 +53,50 @@ class NotifyBotUsecase:
         if not user_ids:
             logger.warning(f"No users found for bot {bot_id}")
             return
-            
+
         aiogram_bot = Bot(token=bot.token.value)
-        
+
         try:
             # Формируем сообщение для отправки
             message_text = self._format_messages(messages)
-            
+
             # Отправляем сообщение каждому пользователю
             for user_id in user_ids:
                 try:
                     await aiogram_bot.send_message(
-                        chat_id=user_id,
-                        text=message_text,
-                        parse_mode="HTML"
+                        chat_id=user_id, text=message_text, parse_mode="HTML"
                     )
                     logger.info(f"Sent notification to user {user_id} for bot {bot_id}")
                 except Exception as e:
                     logger.error(f"Failed to send message to user {user_id}: {str(e)}")
-            
+
             # Обновляем время последнего уведомления
             await self._bot_repository.update_last_notified_at(bot_id, datetime.now())
-            
+
         except Exception as e:
             logger.error(f"Error in notify_bot_usecase: {str(e)}")
             raise e
         finally:
             # Закрываем сессию бота
             await aiogram_bot.session.close()
-    
+
     def _format_messages(self, messages: List[MessageModel]) -> str:
         """
         Format messages for notification.
-        
+
         Args:
             messages: List of messages to format
-            
+
         Returns:
             str: Formatted message text
         """
         if not messages:
             return "Нет новых сообщений"
-            
+
         result = "<b>Новые сообщения:</b>\n\n"
-        
+
         for i, msg in enumerate(messages, 1):
-            result += f"<b>{i}. {msg.published_at.strftime('%d.%m.%Y %H:%M')}</b>\n"
+            result += f"<b>{i}. {(msg.published_at if msg.published_at else datetime.now()).strftime('%d.%m.%Y %H:%M')}</b>\n"
             result += f"{msg.content[:20]}\n\n"
-            
+
         return result

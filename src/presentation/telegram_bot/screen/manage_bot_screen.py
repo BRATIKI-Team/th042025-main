@@ -4,8 +4,8 @@ from dishka import FromDishka
 
 from src.application.usecase.bot.get_my_bots_usecase import GetMyBotsUsecase
 from src.domain.enum.bot_status_enum import BotStatus
-from src.presentation.kb.manage_bot_kb import manage_bot_kb
-from src.presentation.kb.to_menu_kb import to_menu_kb
+from src.presentation.telegram_bot.kb.manage_bot_kb import manage_bot_kb
+from src.presentation.telegram_bot.kb.to_menu_kb import to_menu_kb
 
 
 router = Router()

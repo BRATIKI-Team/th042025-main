@@ -17,7 +17,7 @@ class BotDAO(Table):
     title: Varchar = Varchar(length=255)
     description: Text = Text()
     notification_period: Integer = Integer(length=1)
-    token: Varchar = Varchar(length=46)
+    token: Varchar = Varchar(length=46, unique=True)
     last_notified_at: Timestamp = Timestamp(null=True, default=None)
     status: Integer = Integer(length=1)
 

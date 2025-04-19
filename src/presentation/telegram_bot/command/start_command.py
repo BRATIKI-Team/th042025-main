@@ -4,7 +4,7 @@ from aiogram.types import Message
 from dishka import FromDishka
 
 from src.application.usecase.bot.has_bot_usecase import HasBotUsecase
-from src.presentation.kb.start_kb import start_kb
+from src.presentation.telegram_bot.kb.start_kb import start_kb
 
 router = Router()
 

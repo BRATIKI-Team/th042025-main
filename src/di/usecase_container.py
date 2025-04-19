@@ -1,6 +1,7 @@
 from dishka import FromDishka, Provider, Scope, provide
 
 from src.application.usecase.bot.get_my_bots_usecase import GetMyBotsUsecase
+from src.application.usecase.bot.is_token_unqiue_usecase import IsTokenUniqueUsecase
 from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
 from src.application.usecase.get_grouped_sources_usecase import GetGroupedSourcesUsecase
 from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
@@ -152,3 +153,9 @@ class UsecaseContainer(Provider):
         self, bot_repository: FromDishka[BotRepository]
     ) -> GetMyBotsUsecase:
         return GetMyBotsUsecase(bot_repository=bot_repository)
+
+    @provide(scope=Scope.APP)
+    def is_token_unique_usecase(
+        self, bot_repository: FromDishka[BotRepository]
+    ) -> IsTokenUniqueUsecase:
+        return IsTokenUniqueUsecase(bot_repository=bot_repository)

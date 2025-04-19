@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from src.domain.enum.bot_notification_period_enum import BotNotificationPeriod
 from src.domain.model.pagination_model import PaginationModel
@@ -13,6 +13,10 @@ from src.domain.value_object.bot_token_vo import BotTokenVO
 class BotRepository(ABC):
     @abstractmethod
     async def has_bot(self, user_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    async def get_bot_by_token(self, token: str) -> Optional[BotModel]:
         pass
 
     @abstractmethod
@@ -54,4 +58,8 @@ class BotRepository(ABC):
     async def get_my_bots(
         self, user_id: int, page: int, page_size: int
     ) -> PaginationModel[BotModel]:
+        pass
+
+    @abstractmethod
+    async def get_active_bots(self) -> List[BotModel]:
         pass
