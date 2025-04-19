@@ -10,9 +10,5 @@ class ChromaRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_or_create_collection(self, collection_name: str) -> ChromaVectorStore:
-        pass
-
-    @abstractmethod
     async def drop_collection_if_exists(self, collection_name: str) -> None:
         pass

@@ -4,9 +4,16 @@ from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
 from src.application.usecase.get_grouped_sources_usecase import GetGroupedSourcesUsecase
 from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
 from src.application.usecase.notify_bot_usecase import NotifyBotUsecase
-from src.application.usecase.update_bot_last_notified_usecase import UpdateBotLastNotifiedUsecase
+from src.application.usecase.source.accept_source_usecase import AcceptSourceUsecase
+from src.application.usecase.source.reject_source_usecase import RejectSourceUsecase
+from src.application.usecase.source.search_sources_usecase import SearchSourcesUsecase
+from src.application.usecase.update_bot_last_notified_usecase import (
+    UpdateBotLastNotifiedUsecase,
+)
 from src.application.usecase.bot.create_bot_usecase import CreateBotUsecase
-from src.application.usecase.source.get_pending_source_usecase import GetPendingSourceUsecase
+from src.application.usecase.source.get_pending_source_usecase import (
+    GetPendingSourceUsecase,
+)
 from src.application.usecase.bot.has_bot_usecase import HasBotUsecase
 from src.application.usecase.source.validate_topic_usecase import ValidateTopicUsecase
 from src.application.usecase.tg.telegram_download_media_usecase import (
@@ -28,28 +35,28 @@ from src.domain.repository.user_repository import UserRepository
 class UsecaseContainer(Provider):
     @provide(scope=Scope.APP)
     def has_bot_usecase(
-            self, bot_repository: FromDishka[BotRepository]
+        self, bot_repository: FromDishka[BotRepository]
     ) -> HasBotUsecase:
         return HasBotUsecase(bot_repository=bot_repository)
 
     @provide(scope=Scope.APP)
     def get_pending_source_usecase(
-            self, source_repository: FromDishka[SourceRepository]
+        self, source_repository: FromDishka[SourceRepository]
     ) -> GetPendingSourceUsecase:
         return GetPendingSourceUsecase(source_repository=source_repository)
 
     @provide(scope=Scope.APP)
     def get_grouped_sources_usecase(
-            self, source_repository: FromDishka[SourceRepository]
+        self, source_repository: FromDishka[SourceRepository]
     ) -> GetGroupedSourcesUsecase:
         return GetGroupedSourcesUsecase(source_repository=source_repository)
 
     @provide(scope=Scope.APP)
     def get_source_messages_usecase(
-            self,
-            source_repository: FromDishka[SourceRepository],
-            message_repository: FromDishka[MessageRepository],
-            telegram_repository: FromDishka[TelegramRepository]
+        self,
+        source_repository: FromDishka[SourceRepository],
+        message_repository: FromDishka[MessageRepository],
+        telegram_repository: FromDishka[TelegramRepository],
     ) -> GetSourceMessagesUsecase:
         return GetSourceMessagesUsecase(
             source_repository=source_repository,
@@ -59,19 +66,19 @@ class UsecaseContainer(Provider):
 
     @provide(scope=Scope.APP)
     def telegram_get_channel_info_usecase(
-            self, telegram_repository: FromDishka[TelegramRepository]
+        self, telegram_repository: FromDishka[TelegramRepository]
     ) -> TelegramGetChannelInfoUsecase:
         return TelegramGetChannelInfoUsecase(repository=telegram_repository)
 
     @provide(scope=Scope.APP)
     def telegram_get_messages_usecase(
-            self, telegram_repository: FromDishka[TelegramRepository]
+        self, telegram_repository: FromDishka[TelegramRepository]
     ) -> TelegramGetMessagesUsecase:
         return TelegramGetMessagesUsecase(repository=telegram_repository)
 
     @provide(scope=Scope.APP)
     def telegram_download_media_usecase(
-            self, telegram_repository: FromDishka[TelegramRepository]
+        self, telegram_repository: FromDishka[TelegramRepository]
     ) -> TelegramDownloadMediaUsecase:
         return TelegramDownloadMediaUsecase(repository=telegram_repository)
 
@@ -87,25 +94,25 @@ class UsecaseContainer(Provider):
 
     @provide(scope=Scope.APP)
     def get_bot_by_id_usecase(
-            self, bot_repository: FromDishka[BotRepository]
+        self, bot_repository: FromDishka[BotRepository]
     ) -> GetBotByIdUsecase:
         return GetBotByIdUsecase(bot_repository=bot_repository)
 
     @provide(scope=Scope.APP)
     def update_bot_last_notified_usecase(
-            self, bot_repository: FromDishka[BotRepository]
+        self, bot_repository: FromDishka[BotRepository]
     ) -> UpdateBotLastNotifiedUsecase:
         return UpdateBotLastNotifiedUsecase(bot_repository=bot_repository)
 
     @provide(scope=Scope.APP)
     def notify_bot_usecase(
-            self,
-            get_bot_by_id_usecase: FromDishka[GetBotByIdUsecase],
-            update_bot_last_notified_usecase: FromDishka[UpdateBotLastNotifiedUsecase]
+        self,
+        get_bot_by_id_usecase: FromDishka[GetBotByIdUsecase],
+        update_bot_last_notified_usecase: FromDishka[UpdateBotLastNotifiedUsecase],
     ) -> NotifyBotUsecase:
         return NotifyBotUsecase(
             get_bot_by_id_usecase=get_bot_by_id_usecase,
-            update_bot_last_notified_usecase=update_bot_last_notified_usecase
+            update_bot_last_notified_usecase=update_bot_last_notified_usecase,
         )
 
     @provide(scope=Scope.APP)
@@ -114,3 +121,24 @@ class UsecaseContainer(Provider):
     ) -> ValidateTopicUsecase:
         return ValidateTopicUsecase(source_repository=source_repository)
 
+    @provide(scope=Scope.APP)
+    def search_sources_usecase(
+        self,
+        source_repository: FromDishka[SourceRepository],
+        bot_repository: FromDishka[BotRepository],
+    ) -> SearchSourcesUsecase:
+        return SearchSourcesUsecase(
+            source_repository=source_repository, bot_repository=bot_repository
+        )
+
+    @provide(scope=Scope.APP)
+    def accept_source_usecase(
+        self, source_repository: FromDishka[SourceRepository]
+    ) -> AcceptSourceUsecase:
+        return AcceptSourceUsecase(source_repository=source_repository)
+
+    @provide(scope=Scope.APP)
+    def reject_source_usecase(
+        self, source_repository: FromDishka[SourceRepository]
+    ) -> RejectSourceUsecase:
+        return RejectSourceUsecase(source_repository=source_repository)

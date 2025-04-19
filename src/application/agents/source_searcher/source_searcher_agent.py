@@ -4,7 +4,7 @@ from pydantic_ai.common_tools.duckduckgo import duckduckgo_search_tool
 from pydantic_ai.models import Model
 
 from src.application.dto.source_generate_response import SourceGenerateResponse
-from src.application.agents.source_searcher import system_prompt
+from src.application.agents.source_searcher.prompts import system_prompt
 
 
 class SourceSearcherAgent:
@@ -16,7 +16,7 @@ class SourceSearcherAgent:
         """
         Create an agent for searching for Telegram channels using DuckDuckGo.
         """
-        tools = [duckduckgo_search_tool]
+        tools = [duckduckgo_search_tool()]
         return Agent(
             model=self.__llm,
             tools=tools,

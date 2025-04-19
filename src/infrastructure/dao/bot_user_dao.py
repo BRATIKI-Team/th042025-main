@@ -6,6 +6,6 @@ from .bot_dao import BotDAO
 
 
 class BotUserDAO(Table):
-    id: int = BigSerial(primary_key=True)
-    user_id: int = ForeignKey(UserDAO)
-    bot_id: int = ForeignKey(BotDAO)
+    id: BigSerial = BigSerial(primary_key=True)
+    user_id: ForeignKey = ForeignKey(UserDAO)
+    bot_id: ForeignKey = ForeignKey(BotDAO)
