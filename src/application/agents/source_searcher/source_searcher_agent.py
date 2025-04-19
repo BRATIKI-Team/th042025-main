@@ -5,30 +5,36 @@ from pydantic_ai.models import Model
 
 from src.application.dto.source_generate_response import SourceGenerateResponse
 from src.application.agents.source_searcher.prompts import system_prompt
+from src.application.agents.source_searcher.tools import validate_channel_tool
+from src.domain.repository.telegram_repository import TelegramRepository
 
 
 class SourceSearcherAgent:
-    def __init__(self, llm: Model):
+    def __init__(self, llm: Model, telegram_repository: TelegramRepository):
         self.__llm = llm
+        self.__telegram_repository = telegram_repository
         self.__agent = self.__create_agent()
 
     def __create_agent(self) -> Agent:
         """
-        Create an agent for searching for Telegram channels using DuckDuckGo.
+        Создает агента для поиска Telegram каналов с использованием DuckDuckGo и валидации каналов.
         """
-        tools = [duckduckgo_search_tool()]
+        tools = [
+            duckduckgo_search_tool(),
+            validate_channel_tool(self.__telegram_repository)
+        ]
         return Agent(
             model=self.__llm,
             tools=tools,
             deps_type=str,
             output_type=List[SourceGenerateResponse],
             system_prompt=system_prompt,
-            retries=10,  # Up to 10 retries because of the rate limit
+            retries=10,  # До 10 попыток из-за ограничения скорости
         )
 
     async def execute(self, topic: str) -> List[SourceGenerateResponse]:
         """
-        Execute the agent to search for Telegram channels.
+        Выполняет агента для поиска Telegram каналов.
         """
         result = await self.__agent.run(topic)
         return result.output
