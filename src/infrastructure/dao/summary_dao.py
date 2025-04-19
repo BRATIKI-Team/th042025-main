@@ -5,7 +5,7 @@ from .bot_dao import BotDAO
 
 
 class SummaryDAO(Table):
-    id: int = BigSerial(primary_key=True)
-    bot_id: int = ForeignKey(BotDAO)
-    title: str = Varchar(length=255)
-    summary: str = Text()
+    id: BigSerial = BigSerial(primary_key=True)
+    bot_id: ForeignKey = ForeignKey(BotDAO)
+    title: Varchar = Varchar(length=255)
+    summary: Text = Text()
