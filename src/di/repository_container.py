@@ -71,3 +71,7 @@ class RepositoryContainer(Provider):
     @provide(scope=Scope.APP)
     def bot_user_repository(self) -> BotUserRepository:
         return BotUserRepositoryImpl()
+    
+    @provide(scope=Scope.APP)
+    def chroma_repository(self) -> ChromaRepository:
+        return ChromaRepositoryImpl()

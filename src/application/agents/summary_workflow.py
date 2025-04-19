@@ -1,5 +1,3 @@
-
-
 from typing import List
 
 from src.application.agents.parser.parser_agent import Message, ParserAgent
@@ -31,10 +29,10 @@ class SummaryWorkflow:
             Summaries ready to be sent to user.
         """
         parsed_messages = await self.__parse_messages(topic, messages)
-        sanitized_summaries = await self.__sanitize_summaries(bot_id, parsed_messages)
-        summaries = await self.__summarize_messages(sanitized_summaries)
+        summaries = await self.__summarize_messages(parsed_messages)
+        sanitized_summaries = await self.__sanitize_summaries(bot_id, summaries)
 
-        return summaries
+        return sanitized_summaries
 
     async def __parse_messages(self, topic: str, messages: List[Message]) -> List[Message]:
         """
