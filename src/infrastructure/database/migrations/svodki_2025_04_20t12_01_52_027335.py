@@ -21,7 +21,7 @@ async def forwards():
         tablename="summary_dao",
         column_name="created_at",
         db_column_name="created_at",
-        schema=None
+        schema=None,
     )
 
     return manager
