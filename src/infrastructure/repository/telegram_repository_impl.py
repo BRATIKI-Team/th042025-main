@@ -24,7 +24,7 @@ class TelegramRepositoryImpl(TelegramRepository):
 
     async def download_media(
         self, channel_username: str, message_id: int, file_name: Optional[str] = None
-    ) -> None:
+    ) -> str:
         """
         Download a media file from a message
 
@@ -44,10 +44,9 @@ class TelegramRepositoryImpl(TelegramRepository):
             os.makedirs(self._download_path, exist_ok=True)
 
             # Get the message
-            async with self._tg_client:
-                message = await self._tg_client.engine.get_messages(
-                    channel_username, ids=message_id
-                )
+            message = await self._tg_client.engine.get_messages(
+                channel_username, ids=message_id
+            )
 
             if not message:
                 raise TelegramError(
@@ -88,6 +87,7 @@ class TelegramRepositoryImpl(TelegramRepository):
             logging.info(
                 f"Successfully downloaded file from message {message_id} to {downloaded_path}"
             )
+            return downloaded_path
         except Exception as e:
             logging.error(
                 f"Failed to download file from message {message_id}: {str(e)}"
@@ -122,51 +122,51 @@ class TelegramRepositoryImpl(TelegramRepository):
                     str, list[ChannelMessageModel]
                 ] = {}  # Dictionary to store grouped messages
 
-                async with self._tg_client:
-                    try:
-                        async for message in self._tg_client.engine.iter_messages(
-                            channel_username, limit=limit, offset_date=offset_date
-                        ):
-                            if isinstance(message, TelethonMessage):
-                                # Get channel_id from peer_id if it's a channel message
-                                source = None
-                                if hasattr(message, "peer_id") and hasattr(
-                                    message.peer_id, "channel_id"
-                                ):
-                                    source = str(message.peer_id.channel_id)
+                try:
+                    async for message in self._tg_client.engine.iter_messages(
+                        channel_username, limit=limit, offset_date=offset_date
+                    ):
+                        if isinstance(message, TelethonMessage):
+                            # Get channel_id from peer_id if it's a channel message
+                            source = None
+                            if hasattr(message, "peer_id") and hasattr(
+                                message.peer_id, "channel_id"
+                            ):
+                                source = str(message.peer_id.channel_id)
 
-                                # Check if message is part of a group
-                                grouped_id = getattr(message, "grouped_id", None)
+                            # Check if message is part of a group
+                            grouped_id = getattr(message, "grouped_id", None)
 
-                                if grouped_id:
-                                    # If this is a grouped message, add it to the group
-                                    if grouped_id not in grouped_messages:
-                                        grouped_messages[grouped_id] = []
-                                    grouped_messages[grouped_id].append(message)
-                                else:
-                                    # If this is a standalone message, create it
-                                    messages_dict[message.id] = ChannelMessageModel(
-                                        message_id=message.id,
-                                        date=message.date,
-                                        text=message.text or "",
-                                        attachments=[],
-                                        source=source,
+                            if grouped_id:
+                                # If this is a grouped message, add it to the group
+                                if grouped_id not in grouped_messages:
+                                    grouped_messages[grouped_id] = []
+                                grouped_messages[grouped_id].append(message)
+                            else:
+                                # If this is a standalone message, create it
+                                messages_dict[message.id] = ChannelMessageModel(
+                                    message_id=message.id,
+                                    date=message.date,
+                                    text=message.text or "",
+                                    attachments=[],
+                                    source=source,
+                                )
+
+                                # Add attachments if present
+                                if message.media:
+                                    attachments = await self._get_message_attachments(
+                                        channel_username,
+                                        message
                                     )
-
-                                    # Add attachments if present
-                                    if message.media:
-                                        attachments = await self._get_message_attachments(
-                                            message
-                                        )
-                                        messages_dict[message.id].attachments.extend(
-                                            attachments
-                                        )
-                    except asyncio.CancelledError:
-                        logging.warning(f"Message retrieval was cancelled for channel {channel_username}")
-                        # Return whatever messages we've collected so far
-                        messages = list(messages_dict.values())
-                        messages.sort(key=lambda x: x.message_id, reverse=True)
-                        return messages
+                                    messages_dict[message.id].attachments.extend(
+                                        attachments
+                                    )
+                except asyncio.CancelledError:
+                    logging.warning(f"Message retrieval was cancelled for channel {channel_username}")
+                    # Return whatever messages we've collected so far
+                    messages = list(messages_dict.values())
+                    messages.sort(key=lambda x: x.message_id, reverse=True)
+                    return messages
 
                 # Process grouped messages
                 for _, group in grouped_messages.items():
@@ -188,7 +188,7 @@ class TelegramRepositoryImpl(TelegramRepository):
                     # Add attachments from all messages in group
                     for msg in group:
                         if msg.media:
-                            attachments = await self._get_message_attachments(msg)
+                            attachments = await self._get_message_attachments(channel_username, msg)
                             main_msg.attachments.extend(attachments)
 
                     messages_dict[main_message.id] = main_msg
@@ -209,7 +209,9 @@ class TelegramRepositoryImpl(TelegramRepository):
                 raise TelegramError(f"Message retrieval failed: {str(e)}")
 
     async def _get_message_attachments(
-        self, message: TelethonMessage
+        self,
+        channel_username: str,
+        message: TelethonMessage
     ) -> List[ChannelAttachmentModel]:
         """
         Extract attachments from a Telegram message
@@ -228,8 +230,11 @@ class TelegramRepositoryImpl(TelegramRepository):
                     if hasattr(photo, "id"):
                         attachments.append(
                             ChannelAttachmentModel(
+                                message_id=message.id,
+                                channel_username=channel_username,
                                 type="photo",
                                 file_id=str(photo.id),
+                                file_name="photo_" + str(photo.id) + ".jpg",
                                 mime_type="image/jpeg",
                             )
                         )
@@ -248,6 +253,8 @@ class TelegramRepositoryImpl(TelegramRepository):
 
                         attachments.append(
                             ChannelAttachmentModel(
+                                message_id=message.id,
+                                channel_username=channel_username,
                                 type="document",
                                 file_id=str(doc.id),
                                 file_name=file_name,
@@ -275,15 +282,14 @@ class TelegramRepositoryImpl(TelegramRepository):
         """
         async with self._semaphore:
             try:
-                async with self._tg_client:
-                    entity = await self._tg_client.engine.get_entity(channel_username)
+                entity = await self._tg_client.engine.get_entity(channel_username)
 
-                    if not isinstance(entity, TelethonChannel):
-                        raise TelegramError(
-                            f"Entity {channel_username} is not a channel"
-                        )
+                if not isinstance(entity, TelethonChannel):
+                    raise TelegramError(
+                        f"Entity {channel_username} is not a channel"
+                    )
 
-                    full_channel = await self._tg_client.engine.get_entity(entity)
+                full_channel = await self._tg_client.engine.get_entity(entity)
 
                 # Safely get channel attributes
                 channel_id = getattr(entity, "id", None)
@@ -324,10 +330,9 @@ class TelegramRepositoryImpl(TelegramRepository):
         """
         if hasattr(entity, "photo") and entity.photo:
             try:
-                async with self._tg_client:
-                    photo = await self._tg_client.engine.download_profile_photo(
-                        entity, file=bytes
-                    )
+                photo = await self._tg_client.engine.download_profile_photo(
+                    entity, file=bytes
+                )
 
                 if photo:
                     return f"data:image/jpeg;base64,{photo.hex()}"

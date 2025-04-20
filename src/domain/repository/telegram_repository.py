@@ -10,7 +10,7 @@ class TelegramRepository(ABC):
     @abstractmethod
     async def download_media(
         self, channel_username: str, message_id: int, file_name: Optional[str] = None
-    ) -> None:
+    ) -> str:
         pass
 
     @abstractmethod

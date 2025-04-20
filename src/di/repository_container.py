@@ -26,6 +26,7 @@ from src.infrastructure.repository.user_repository_impl import UserRepositoryImp
 from src.infrastructure.repository.user_bot_repository_impl import UserBotRepositoryImpl
 from src.infrastructure.tg.telegram_client import TelegramClient
 from src.infrastructure.config import config
+from src.infrastructure.tg.telegram_client_factory import TelegramClientFactory
 
 
 class RepositoryContainer(Provider):
@@ -51,9 +52,10 @@ class RepositoryContainer(Provider):
         return MessageRepositoryImpl()
 
     @provide(scope=Scope.APP)
-    def telegram_repository(
-        self, tg_client: FromDishka[TelegramClient]
+    async def telegram_repository(
+        self, tg_client_factory: FromDishka[TelegramClientFactory]
     ) -> TelegramRepository:
+        tg_client = await tg_client_factory.get_client()
         return TelegramRepositoryImpl(
             tg_client=tg_client,
             download_path=config.TELEGRAM_DOWNLOAD_PATH,

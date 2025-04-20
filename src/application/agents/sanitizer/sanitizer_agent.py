@@ -89,8 +89,13 @@ class SanitizerAgent:
         result = await self.__agent.run(summaries_json)
 
         try:
+            content =  str(result.response.content).lstrip("```json").rstrip("```")
+            print("--- JSON STRING ---")
+
+            print(content)
             # Parse the JSON response
-            sanitized_summaries = json.loads(str(result.response.content))
+
+            sanitized_summaries = json.loads(content)
             print(
                 f"---**Sanitizer Agent** | output | => {sanitized_summaries}",
                 end="\n\n",

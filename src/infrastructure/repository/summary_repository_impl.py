@@ -20,7 +20,7 @@ class SummaryRepositoryImpl(SummaryRepository):
         # Create a list of SummaryDAO objects
         query = SummaryDAO.insert()
         for summary in summaries:
-            query.add(SummaryDAO(
+            query = query.add(SummaryDAO(
                 bot_id=bot_id,
                 title=summary.title,
                 summary=summary.content,

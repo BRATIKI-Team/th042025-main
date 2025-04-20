@@ -129,6 +129,7 @@ class UsecaseContainer(Provider):
         user_bot_repository: FromDishka[UserBotRepository],
         message_repository: FromDishka[MessageRepository],
         summary_repository: FromDishka[SummaryRepository],
+        telegram_repository: FromDishka[TelegramRepository],
         index_service: FromDishka[IndexService],
     ) -> NotifyBotUsecase:
         return NotifyBotUsecase(
@@ -136,6 +137,7 @@ class UsecaseContainer(Provider):
             user_bot_repository=user_bot_repository,
             message_repository=message_repository,
             summary_repository=summary_repository,
+            telegram_repository=telegram_repository,
             index_service=index_service,
         )
 
