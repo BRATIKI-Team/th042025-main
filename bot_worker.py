@@ -4,10 +4,11 @@ from aiogram import Bot
 from src.di.container import init_container
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.bot_user_repository import BotUserRepository
+from src.domain.repository.user_repository import UserRepository
 
 
 async def check_updates(
-    bot_user_repository: BotUserRepository, bot_id: int, token: str, offset: int
+    bot_user_repository: BotUserRepository, user_repository: UserRepository, bot_id: int, token: str, offset: int
 ) -> int:
     bot = Bot(token=token)
 
@@ -16,6 +17,7 @@ async def check_updates(
 
     for update in updates:
         if update.message and update.message.text == "/start":
+            await user_repository.ensure_user_exists(user_id=update.message.from_user.id)
             await bot_user_repository.create_bot_user(
                 bot_id=bot_id, user_id=update.message.from_user.id
             )
@@ -35,6 +37,7 @@ async def main() -> None:
 
     bot_repository = await container.get(BotRepository)
     bot_user_repository = await container.get(BotUserRepository)
+    user_repository = await container.get(UserRepository)
 
     offsets: dict[str, int] = {}
 
@@ -45,6 +48,7 @@ async def main() -> None:
             offset = offsets.get(bot.id, 0)
             new_offset = await check_updates(
                 bot_user_repository=bot_user_repository,
+                user_repository=user_repository,
                 bot_id=bot.id,
                 token=bot.token.value,
                 offset=offset,
