@@ -9,6 +9,7 @@ from src.application.services import IndexService
 from src.domain.model.message_model import MessageModel
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.message_repository import MessageRepository
+from src.domain.repository.summary_repository import SummaryRepository
 from src.domain.repository.user_bot_repository import UserBotRepository
 from src.infrastructure.config import config
 
@@ -26,11 +27,13 @@ class NotifyBotUsecase:
         bot_repository: BotRepository,
         user_bot_repository: UserBotRepository,
         message_repository: MessageRepository,
+        summary_repository: SummaryRepository,
         index_service: IndexService,
     ):
         self._bot_repository = bot_repository
         self._user_bot_repository = user_bot_repository
         self._message_repository = message_repository
+        self._summary_repository = summary_repository
         self._workflow = SummaryWorkflow(index_service=index_service)
 
     async def execute(self, bot_id: int) -> None:
@@ -50,14 +53,21 @@ class NotifyBotUsecase:
             bot.id, bot.last_notified_at
         )
 
-        summrizedMessages = await self._workflow.start_workflow(
+        if len(messages) == 0:
+            print("NO MESSAGES")
+            return
+
+        summarized_messages = await self._workflow.start_workflow(
             bot.id, bot.description.value, messages
         )
+
+        # Save summaries to the database
+        await self._summary_repository.create_many(bot.id, summarized_messages)
 
         # This could involve sending a message to a Telegram bot,
         # posting to a webhook, etc.
 
-        # Получаем список пользователей для этого бота
+        # Get list of users for this bot
         user_ids = await self._user_bot_repository.get_users_by_bot_id(bot_id)
         if not user_ids:
             logger.warning(f"No users found for bot {bot_id}")
@@ -66,7 +76,7 @@ class NotifyBotUsecase:
         aiogram_bot = Bot(token=bot.token.value)
 
         try:
-            for message in summrizedMessages:
+            for message in summarized_messages:
                 message_text = message.title + "\n\n" + message.content
 
                 for user_id in user_ids:
@@ -82,12 +92,11 @@ class NotifyBotUsecase:
                             f"Failed to send message to user {user_id}: {str(e)}"
                         )
 
-            # Обновляем время последнего уведомления
-            await self._bot_repository.update_last_notified_at(bot_id, datetime.now())
+            # Update last_notified_at timestamp
+            await self._bot_repository.update_last_notified_at(bot.id, datetime.now())
 
         except Exception as e:
             logger.error(f"Error in notify_bot_usecase: {str(e)}")
-            raise e
         finally:
             # Закрываем сессию бота
             await aiogram_bot.session.close()

@@ -29,6 +29,9 @@ class SummaryWorkflow:
         parsed_messages = await self.__parse_messages(topic, messages)
         summaries = await self.__summarize_messages(parsed_messages)
         sanitized_summaries = await self.__sanitize_summaries(bot_id, summaries)
+        
+        if (len(sanitized_summaries) > 0):
+            await self.__index_service.index_summaries(bot_id, sanitized_summaries)
 
         return sanitized_summaries
 

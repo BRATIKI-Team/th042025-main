@@ -14,3 +14,6 @@ class BotUserRepositoryImpl(BotUserRepository):
             return
 
         await BotUserDAO.objects().create(bot_id=bot_id, user_id=user_id)
+
+    async def get_users_count(self, bot_id: int) -> int:
+        return await BotUserDAO.count().where(BotUserDAO.bot_id == bot_id)

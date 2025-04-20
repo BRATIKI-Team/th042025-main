@@ -54,3 +54,7 @@ class SourceRepository(ABC):
         self, bot_id: int, status: SourceStatus, page: int, page_size: int
     ) -> PaginationModel[SourceModel]:
         pass
+
+    @abstractmethod
+    async def get_by_bot_id(self, bot_id: int) -> List[SourceModel]:
+        pass

@@ -10,3 +10,7 @@ class ChromaRepository(ABC):
     @abstractmethod
     async def drop_collection_if_exists(self, collection_name: str) -> None:
         pass
+
+    @abstractmethod
+    async def collection_exists(self, collection_name: str) -> bool:
+        pass

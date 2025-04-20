@@ -4,14 +4,17 @@ import signal
 import sys
 import time
 from datetime import datetime, timedelta
+from typing import Dict, List, Set
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.job import Job
 
 from src.di.container import init_container
 from src.application.usecase.get_grouped_sources_usecase import GetGroupedSourcesUsecase
 from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
 from src.application.usecase.notify_bot_usecase import NotifyBotUsecase
+from src.domain.model.grouped_source_model import GroupedSourceModel
 
 
 # Configure logging
@@ -27,6 +30,10 @@ shutdown_event = None
 force_exit = False
 last_signal_time = 0
 
+# Global variables for source management
+active_jobs: Dict[str, Job] = {}  # Maps job_id to Job object
+source_polling_interval = 60  # Poll for new sources every 60 seconds
+
 
 async def process_source_group(
     grouped_source, get_source_messages_usecase, notify_bot_usecase
@@ -38,8 +45,15 @@ async def process_source_group(
         logger.info(
             f"Processing source group: {grouped_source.url} (type: {grouped_source.type})"
         )
-        await get_source_messages_usecase.execute(grouped_source)
-        logger.info(f"Successfully processed source group: {grouped_source.url}")
+        try:
+            await get_source_messages_usecase.execute(grouped_source)
+            logger.info(f"Successfully processed source group: {grouped_source.url}")
+        except asyncio.CancelledError:
+            logger.warning(f"Source group processing was cancelled: {grouped_source.url}")
+            return
+        except Exception as e:
+            logger.error(f"Error getting messages for source group {grouped_source.url}: {str(e)}")
+            return
 
         now = datetime.now()
         bots_to_notify = []
@@ -52,13 +66,96 @@ async def process_source_group(
                 bots_to_notify.append(source.bot_id)
 
         # Notify each bot
-        for bot in bots_to_notify:
-            logger.info(f"Notifying bot {bot} messages from sources")
-            await notify_bot_usecase.execute(bot)
+        for bot_id in bots_to_notify:
+            try:
+                logger.info(f"Notifying bot {bot_id} messages from sources")
+                await notify_bot_usecase.execute(bot_id)
+            except asyncio.CancelledError:
+                logger.warning(f"Bot notification was cancelled for bot {bot_id}")
+                return
+            except Exception as e:
+                logger.error(f"Error notifying bot {bot_id}: {str(e)}")
 
     except Exception as e:
         logger.error(f"Error processing source group {grouped_source.url}: {str(e)}")
-        raise e
+
+
+def create_job_id(period: int, source_url: str) -> str:
+    """
+    Create a unique job ID for a source group.
+    """
+    return f"process_sources_period_{period}_{source_url}"
+
+
+def update_scheduler_jobs(
+    scheduler: AsyncIOScheduler,
+    grouped_sources: List[GroupedSourceModel],
+    get_source_messages_usecase,
+    notify_bot_usecase,
+) -> None:
+    """
+    Update scheduler jobs based on current grouped sources.
+    """
+    # Get current active job IDs
+    current_job_ids = set(active_jobs.keys())
+    
+    # Create a set of required job IDs based on current sources
+    required_job_ids = set()
+    for source in grouped_sources:
+        job_id = create_job_id(source.notification_period, source.url)
+        required_job_ids.add(job_id)
+        
+        # If this is a new job, add it to the scheduler
+        if job_id not in current_job_ids:
+            logger.info(f"Adding new job for source {source.url} with period {source.notification_period}")
+            job = scheduler.add_job(
+                process_sources_for_period,
+                IntervalTrigger(seconds=source.notification_period),
+                args=[[source], get_source_messages_usecase, notify_bot_usecase],
+                id=job_id,
+                replace_existing=True,
+            )
+            active_jobs[job_id] = job
+    
+    # Remove jobs that are no longer needed
+    jobs_to_remove = current_job_ids - required_job_ids
+    for job_id in jobs_to_remove:
+        logger.info(f"Removing obsolete job {job_id}")
+        scheduler.remove_job(job_id)
+        del active_jobs[job_id]
+
+
+async def poll_sources(
+    scheduler: AsyncIOScheduler,
+    get_grouped_sources_usecase,
+    get_source_messages_usecase,
+    notify_bot_usecase,
+) -> None:
+    """
+    Poll for new sources and update scheduler jobs.
+    """
+    while not shutdown_event.is_set():
+        try:
+            # Get current grouped sources
+            grouped_sources = await get_grouped_sources_usecase.execute()
+            
+            # Update scheduler jobs
+            update_scheduler_jobs(
+                scheduler,
+                grouped_sources,
+                get_source_messages_usecase,
+                notify_bot_usecase,
+            )
+            
+            # Wait for next polling interval
+            await asyncio.sleep(source_polling_interval)
+            
+        except asyncio.CancelledError:
+            logger.info("Source polling was cancelled")
+            break
+        except Exception as e:
+            logger.error(f"Error polling sources: {str(e)}")
+            await asyncio.sleep(source_polling_interval)
 
 
 async def setup_scheduler():
@@ -81,38 +178,28 @@ async def setup_scheduler():
     # Create scheduler
     scheduler = AsyncIOScheduler()
 
-    # Get grouped sources
+    # Get initial grouped sources and set up jobs
     grouped_sources = await get_grouped_sources_usecase.execute()
-
-    # Group sources by notification period
-    notification_periods = {}
-    for source in grouped_sources:
-        period = source.notification_period
-        if period not in notification_periods:
-            notification_periods[period] = []
-        notification_periods[period].append(source)
-
-    # Create jobs for each notification period
-    for period, sources in notification_periods.items():
-        # Convert period to seconds (assuming period is in minutes)
-        interval_seconds = period
-
-        # Create a job for this notification period
-        scheduler.add_job(
-            process_sources_for_period,
-            IntervalTrigger(seconds=interval_seconds),
-            args=[sources, get_source_messages_usecase, notify_bot_usecase],
-            id=f"process_sources_period_{period}",
-            replace_existing=True,
-        )
-
-        logger.info(
-            f"Added job for notification period {period} seconds with {len(sources)} source groups"
-        )
+    update_scheduler_jobs(
+        scheduler,
+        grouped_sources,
+        get_source_messages_usecase,
+        notify_bot_usecase,
+    )
 
     # Start the scheduler
     scheduler.start()
     logger.info("Scheduler started")
+
+    # Start source polling task
+    polling_task = asyncio.create_task(
+        poll_sources(
+            scheduler,
+            get_grouped_sources_usecase,
+            get_source_messages_usecase,
+            notify_bot_usecase,
+        )
+    )
 
     # Keep the script running until shutdown event is set
     try:
@@ -121,6 +208,12 @@ async def setup_scheduler():
         logger.info("Scheduler task was cancelled")
     finally:
         if not force_exit:
+            # Cancel polling task
+            polling_task.cancel()
+            try:
+                await polling_task
+            except asyncio.CancelledError:
+                pass
             await graceful_shutdown()
 
 
@@ -142,7 +235,12 @@ async def process_sources_for_period(
             )
 
     if tasks:
-        await asyncio.gather(*tasks)
+        try:
+            await asyncio.gather(*tasks)
+        except asyncio.CancelledError:
+            logger.warning("Source processing was cancelled")
+        except Exception as e:
+            logger.error(f"Error processing sources: {str(e)}")
 
 
 async def graceful_shutdown():

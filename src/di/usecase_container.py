@@ -2,6 +2,8 @@ from dishka import FromDishka, Provider, Scope, provide
 
 from src.application.services import index_service, IndexService
 from src.application.usecase.bot.delete_bot_usecase import DeleteBotUsecase
+from src.application.usecase.bot.get_all_bots_usecase import GetAllBotsUsecase
+from src.application.usecase.bot.get_detail_bot_usecase import GetDetailBotUsecase
 from src.application.usecase.bot.get_my_bots_usecase import GetMyBotsUsecase
 from src.application.usecase.bot.is_token_unqiue_usecase import IsTokenUniqueUsecase
 from src.application.usecase.bot.resume_bot_usecase import ResumeBotUsecase
@@ -39,11 +41,13 @@ from src.application.usecase.tg.telegram_get_messages_usecase import (
     TelegramGetMessagesUsecase,
 )
 from src.domain.repository.bot_repository import BotRepository
+from src.domain.repository.bot_user_repository import BotUserRepository
 from src.domain.repository.message_repository import MessageRepository
 from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.telegram_repository import TelegramRepository
 from src.domain.repository.user_bot_repository import UserBotRepository
 from src.domain.repository.user_repository import UserRepository
+from src.domain.repository.summary_repository import SummaryRepository
 
 
 class UsecaseContainer(Provider):
@@ -124,12 +128,14 @@ class UsecaseContainer(Provider):
         bot_repository: FromDishka[BotRepository],
         user_bot_repository: FromDishka[UserBotRepository],
         message_repository: FromDishka[MessageRepository],
+        summary_repository: FromDishka[SummaryRepository],
         index_service: FromDishka[IndexService],
     ) -> NotifyBotUsecase:
         return NotifyBotUsecase(
             bot_repository=bot_repository,
             user_bot_repository=user_bot_repository,
             message_repository=message_repository,
+            summary_repository=summary_repository,
             index_service=index_service,
         )
 
@@ -212,3 +218,24 @@ class UsecaseContainer(Provider):
         self, source_repository: FromDishka[SourceRepository]
     ) -> HasAcceptedSourceUsecase:
         return HasAcceptedSourceUsecase(source_repository=source_repository)
+
+    @provide(scope=Scope.APP)
+    def get_detail_bot_usecase(
+        self,
+        bot_repository: FromDishka[BotRepository],
+        source_repository: FromDishka[SourceRepository],
+        bot_user_repository: FromDishka[BotUserRepository],
+        message_repository: FromDishka[MessageRepository],
+    ) -> GetDetailBotUsecase:
+        return GetDetailBotUsecase(
+            bot_repository=bot_repository,
+            source_repository=source_repository,
+            bot_user_repository=bot_user_repository,
+            message_repository=message_repository,
+        )
+
+    @provide(scope=Scope.APP)
+    def get_all_bots_usecase(
+        self, bot_repository: FromDishka[BotRepository]
+    ) -> GetAllBotsUsecase:
+        return GetAllBotsUsecase(bot_repository=bot_repository)

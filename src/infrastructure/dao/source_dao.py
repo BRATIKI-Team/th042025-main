@@ -2,6 +2,7 @@ from piccolo.table import Table
 from piccolo.columns import BigSerial, Varchar, Integer, ForeignKey, Timestamp
 
 from src.domain.enum.source_status_enum import SourceStatus
+from src.domain.enum.source_type_enum import SourceType
 from src.domain.model.source_model import SourceModel
 from src.infrastructure.dao.bot_dao import BotDAO
 
@@ -24,6 +25,6 @@ class SourceDAO(Table):
             status=SourceStatus(dao.status),
             url=dao.url,
             description=dao.description,
-            type=dao.type,
+            type=SourceType(dao.type),
             last_hit_datetime=dao.last_hit_datetime,
         )

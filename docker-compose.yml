@@ -23,6 +23,20 @@ services:
       - db:/usr/app/db
     entrypoint: ["python", "bot_worker.py"]
 
+  api-service:
+    container_name: api-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - logs:/usr/app/logs
+      - data:/usr/app/data
+      - db:/usr/app/db
+    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+
 volumes:
   logs:
   data:

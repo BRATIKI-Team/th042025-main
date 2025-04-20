@@ -32,7 +32,6 @@ class GetSourceMessagesUsecase:
 
         # Get messages based on source type
         messages = []
-        print(grouped_source.type)
         if grouped_source.type == 0:  # Telegram source
             messages = await self._get_telegram_messages(grouped_source)
         else:
@@ -144,7 +143,6 @@ class GetSourceMessagesUsecase:
 
         except Exception as e:
             logger.error(f"Error getting Telegram messages: {str(e)}")
-            raise e
             return []
 
     def _extract_telegram_channel_username(self, url: str) -> str:
