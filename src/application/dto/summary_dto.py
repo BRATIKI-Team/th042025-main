@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -18,5 +19,5 @@ class SummaryDto(BaseModel):
         example={"source": "https://www.google.com"},
     )
 
-class SummaryWithImageDto(SummaryDto):
-    image_url: str = Field(..., description="URL of the image associated with the summary")
+class SummaryExtendedDto(SummaryDto):
+    image_url: Optional[str] = Field(default=None, description="URL of the image associated with the summary")

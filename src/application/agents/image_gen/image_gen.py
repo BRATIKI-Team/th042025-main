@@ -1,6 +1,7 @@
 from pydantic_ai.models import Model
 from openai import OpenAI
 
+from src.application.agents.image_gen import prompt
 from src.infrastructure.config import config
 
 
@@ -16,10 +17,11 @@ class ImageGenerator:
         """
         return OpenAI(api_key=self.__api_key)
 
-    async def execute(self, image_prompt: str):
+    async def execute(self, topic: str):
         """
         Generates image
         """
+        image_prompt = prompt.replace("{{topic}}", topic)
         try:
             result = self.__client.images.generate(
                 model=self.__model_name,  # dall-e-3

@@ -1,9 +1,10 @@
 from typing import List
 
+from src.application.agents.image_gen.image_gen import ImageGenerator
 from src.application.agents.parser.parser_agent import ParserAgent
 from src.application.agents.sanitizer.sanitizer_agent import SanitizerAgent
 from src.application.agents.summarizer.summarizer_agent import SummarizerAgent
-from src.application.dto.summary_dto import SummaryDto, SummaryWithImageDto
+from src.application.dto.summary_dto import SummaryDto, SummaryExtendedDto
 from src.application.services.index_service import IndexService
 from src.domain.model.message_model import MessageModel
 
@@ -14,7 +15,7 @@ class SummaryWorkflow:
 
     async def start_workflow(
         self, bot_id: int, topic: str, messages: List[MessageModel]
-    ) -> List[SummaryDto]:
+    ) -> List[SummaryExtendedDto]:
         """
         Starts the summary workflow.
 
@@ -33,7 +34,8 @@ class SummaryWorkflow:
         if (len(sanitized_summaries) > 0):
             await self.__index_service.index_summaries(bot_id, sanitized_summaries)
 
-        return sanitized_summaries
+        summaries_with_images = await self.__generate_images(sanitized_summaries)
+        return summaries_with_images
 
     async def __parse_messages(
         self, topic: str, messages: List[MessageModel]
@@ -83,7 +85,7 @@ class SummaryWorkflow:
         sanitizer_agent = SanitizerAgent(bot_id, summaries, self.__index_service)
         return await sanitizer_agent.execute()
 
-    async def __generate_images(self, summaries: List[SummaryDto]) -> List[SummaryWithImageDto]:
+    async def __generate_images(self, summaries: List[SummaryDto]) -> List[SummaryExtendedDto]:
         """
         Generates images for the summaries.
 
@@ -95,11 +97,13 @@ class SummaryWorkflow:
         """
         summaries = []
         for summary in summaries:
-            
-            summary = SummaryWithImageDto(
+            image_generator = ImageGenerator()
+            image_url = await image_generator.execute(summary.title)
+            summary = SummaryExtendedDto(
                 title=summary.title,
                 content=summary.content,
                 metadata=summary.metadata,
+                image_url=image_url
             )
             summaries.append(summary)
         return summaries
