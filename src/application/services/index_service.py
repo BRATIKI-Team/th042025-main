@@ -16,7 +16,7 @@ class IndexService:
         )
 
     async def index_summaries(
-        self, bot_id: str, summaries: List[SummaryDAO]
+        self, bot_id: int, summaries: List[SummaryDAO]
     ) -> VectorStoreIndex:
         """
         Creates an index for a received summaries.
@@ -41,12 +41,12 @@ class IndexService:
 
         collection_name = self.__get_collection_name(bot_id)
         if (await self.__chroma_repository.collection_exists(collection_name)):
-            return await self.__update_index(bot_id, nodes)
+            return await self.__update_index(collection_name, nodes)
         
-        return await self.__index(bot_id, nodes)
+        return await self.__index(collection_name, nodes)
 
 
-    def get_index(self, bot_id: str) -> VectorStoreIndex:
+    def get_index(self, bot_id: int) -> VectorStoreIndex:
         """
         Retrieves an existing index for querying purposes.
 
@@ -111,5 +111,5 @@ class IndexService:
 
 
     @staticmethod
-    def __get_collection_name(bot_id: str) -> str:
+    def __get_collection_name(bot_id: int) -> str:
         return f"bot_collection_{bot_id}"

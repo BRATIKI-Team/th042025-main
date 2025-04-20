@@ -75,8 +75,11 @@ async def process_source_group(
                 return
             except Exception as e:
                 logger.error(f"Error notifying bot {bot_id}: {str(e)}")
+                raise e
 
     except Exception as e:
+        raise e
+        exit(1)
         logger.error(f"Error processing source group {grouped_source.url}: {str(e)}")
 
 
@@ -240,6 +243,8 @@ async def process_sources_for_period(
         except asyncio.CancelledError:
             logger.warning("Source processing was cancelled")
         except Exception as e:
+            raise e
+            exit(1)
             logger.error(f"Error processing sources: {str(e)}")
 
 
