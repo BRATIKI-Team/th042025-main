@@ -98,7 +98,8 @@ class SummaryWorkflow:
         summaries = []
         for summary in summaries:
             image_generator = ImageGenerator()
-            image_url = await image_generator.execute(summary.title)
+            #image_url = await image_generator.execute(summary.title)
+            image_url = None
             summary = SummaryExtendedDto(
                 title=summary.title,
                 content=summary.content,

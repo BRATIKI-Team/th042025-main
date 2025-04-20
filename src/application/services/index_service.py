@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from llama_index.core import StorageContext, VectorStoreIndex, Document
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.schema import TextNode
@@ -14,6 +14,7 @@ class IndexService:
         self.__embed_model = OpenAIEmbedding(
             api_key=config.OPENAI_API_KEY.get_secret_value()
         )
+
 
     async def index_summaries(
         self, bot_id: int, summaries: List[SummaryDAO]
@@ -35,8 +36,9 @@ class IndexService:
 
             metadata = {"title": summary.title}
             metadata.update(summary.metadata)
+            sanitized_metadata = self.__sanitize_metadata(metadata)
 
-            text_node = TextNode(text=text, metadata=metadata)
+            text_node = TextNode(text=text, metadata=sanitized_metadata)
             nodes.append(text_node)
 
         collection_name = self.__get_collection_name(bot_id)
@@ -108,6 +110,27 @@ class IndexService:
 
         index.insert_nodes(nodes)
         return index
+
+
+    def __sanitize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sanitizes metadata to ensure it only contains values that ChromaDB supports.
+        ChromaDB only supports str, int, float, and None values in metadata.
+
+        Args:
+            metadata: The metadata dictionary to sanitize
+
+        Returns:
+            A sanitized metadata dictionary with only supported value types
+        """
+        sanitized = {}
+        for key, value in metadata.items():
+            if isinstance(value, (str, int, float)) or value is None:
+                sanitized[key] = value
+            else:
+                # Convert other types to string representation
+                sanitized[key] = str(value)
+        return sanitized
 
 
     @staticmethod
