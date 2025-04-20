@@ -17,3 +17,6 @@ class SummaryDto(BaseModel):
         description="Additional metadata related to the summary, such as the source",
         example={"source": "https://www.google.com"},
     )
+
+class SummaryWithImageDto(SummaryDto):
+    image_url: str = Field(..., description="URL of the image associated with the summary")

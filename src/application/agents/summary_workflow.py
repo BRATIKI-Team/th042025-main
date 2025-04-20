@@ -3,7 +3,7 @@ from typing import List
 from src.application.agents.parser.parser_agent import ParserAgent
 from src.application.agents.sanitizer.sanitizer_agent import SanitizerAgent
 from src.application.agents.summarizer.summarizer_agent import SummarizerAgent
-from src.application.dto.summary_dto import SummaryDto
+from src.application.dto.summary_dto import SummaryDto, SummaryWithImageDto
 from src.application.services.index_service import IndexService
 from src.domain.model.message_model import MessageModel
 
@@ -83,5 +83,23 @@ class SummaryWorkflow:
         sanitizer_agent = SanitizerAgent(bot_id, summaries, self.__index_service)
         return await sanitizer_agent.execute()
 
-    async def __generate_images(self):
-        pass
+    async def __generate_images(self, summaries: List[SummaryDto]) -> List[SummaryWithImageDto]:
+        """
+        Generates images for the summaries.
+
+        Args:
+            summaries: The summaries to generate images for.
+
+        Returns:
+            The summaries with images.
+        """
+        summaries = []
+        for summary in summaries:
+            
+            summary = SummaryWithImageDto(
+                title=summary.title,
+                content=summary.content,
+                metadata=summary.metadata,
+            )
+            summaries.append(summary)
+        return summaries
