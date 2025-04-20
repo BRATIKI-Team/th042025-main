@@ -1,4 +1,5 @@
-from typing import List
+from datetime import datetime
+from typing import Dict, List
 
 from src.application.dto.summary_dto import SummaryDto
 from src.domain.repository.summary_repository import SummaryRepository
@@ -20,16 +21,29 @@ class SummaryRepositoryImpl(SummaryRepository):
         # Create a list of SummaryDAO objects
         query = SummaryDAO.insert()
         for summary in summaries:
-            query = query.add(SummaryDAO(
-                bot_id=bot_id,
-                title=summary.title,
-                summary=summary.content,
-                metadata=summary.metadata,
-            ))
-
+            query = query.add(
+                SummaryDAO(
+                    bot_id=bot_id,
+                    title=summary.title,
+                    summary=summary.content,
+                    metadata=summary.metadata,
+                    created_at=datetime.now(),
+                )
+            )
 
         # Insert all summaries in a single operation
         created_daos = await query
 
         # Return the IDs of the created summaries
-        return [dao['id'] for dao in created_daos]
+        return [dao["id"] for dao in created_daos]
+
+    async def get_metrics(self, bot_id: int) -> Dict[datetime, int]:
+        """
+        Get metrics for a bot.
+        """
+        daos = await SummaryDAO.objects().where(SummaryDAO.bot_id == bot_id)
+
+        metrics: dict[datetime, int] = {}
+        for summary in daos:
+            metrics[summary.created_at] = metrics.get(summary.created_at, 0) + 1
+        return metrics

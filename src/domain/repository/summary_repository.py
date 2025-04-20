@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List
+from datetime import datetime
+from typing import Dict, List
 
 from src.application.dto.summary_dto import SummaryDto
 
@@ -17,4 +18,11 @@ class SummaryRepository(ABC):
         Returns:
             List of created summary IDs
         """
-        pass 
+        pass
+
+    @abstractmethod
+    async def get_metrics(self, bot_id: int) -> Dict[datetime, int]:
+        """
+        Get metrics for a bot.
+        """
+        pass
