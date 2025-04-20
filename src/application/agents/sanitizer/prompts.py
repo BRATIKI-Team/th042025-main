@@ -22,7 +22,7 @@ Follow these rules:
     - Avoid repeating facts or messages already present in past notifications.
     - Only return cleaned summaries — do not include analysis or reasoning in the final output.
 
-6. Keep the summary in the same language as it is.
+6. Summary should be only on Russian.
 
 ### **Output Format**:
 Your response should be a list of summaries' objects (no any other additional text),
