@@ -5,6 +5,7 @@ from src.application.agents.source_searcher import SourceSearcherAgent
 from src.application.agents.topic_validator.topic_validator_agent import (
     TopicValidatorAgent,
 )
+from src.application.dto.source_generate_response import SourceGenerateResponse
 from src.domain.enum.source_status_enum import SourceStatus
 from src.domain.enum.source_type_enum import SourceType
 from src.domain.model.grouped_source_model import GroupedSourceModel
@@ -25,7 +26,7 @@ class SourceRepositoryImpl(SourceRepository):
         self.__validate_topic_agent = validate_topic_agent
         self.__search_sources_agent = search_sources_agent
         self.__telegram_repository = telegram_repository
-        
+
     async def get_source_by_status(
         self, bot_id: int, status: SourceStatus
     ) -> SourceModel | None:
@@ -130,17 +131,17 @@ class SourceRepositoryImpl(SourceRepository):
         return await self.__validate_topic_agent.execute(topic=topic)
 
     async def search_sources(self, bot_id: int, topic: str) -> None:
-        result_responses = []
+        result_responses: list[SourceGenerateResponse] = []
         while len(result_responses) < 10:
             responses = await self.__search_sources_agent.execute(topic=topic)
-            
+
             for response in responses:
                 try:
                     await self.__telegram_repository.get_channel_info(response.url)
                     result_responses.append(response)
                 except Exception:
                     continue
-        
+
         models = []
         for response in result_responses:
             models.append(
