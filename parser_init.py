@@ -16,8 +16,6 @@ async def init_parser() -> None:
         await telegram_client.engine.send_code_request(phone=phone)
 
         code = input("Enter the code: ")
-        await telegram_client.engine.sign_in(phone=phone, code=code)
-
         try:
             await telegram_client.engine.sign_in(phone, code)
         except SessionPasswordNeededError:
