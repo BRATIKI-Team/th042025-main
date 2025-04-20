@@ -5,6 +5,7 @@ from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from datetime import datetime
 
+from src.application.dto.messege_content_parser_dto import MessageContentParserDto
 from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import config
 from .prompts import system_prompt
@@ -51,9 +52,13 @@ class ParserAgent:
                 f"Object of type {type(obj).__name__} is not JSON serializable"
             )
 
-        # Serialize input messages
+        messages_dto = [
+            MessageContentParserDto(id=message.id, content=message.content)
+            for message in messages
+        ]
+
         messages_json = json.dumps(
-            [message.model_dump() for message in messages], default=datetime_handler
+            [message.model_dump() for message in messages_dto], default=datetime_handler
         )
 
         print(f"---**Parser Agent** | input | => {messages_json}", end="\n\n")
