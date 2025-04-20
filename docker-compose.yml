@@ -34,7 +34,6 @@ services:
       - data:/usr/app/data
       - db:/usr/app/db
       - ./.scheduler.env:/usr/app/.env
-      - ./session/scheduler.session:/usr/app/session/scheduler.session
     entrypoint: ["python", "scheduler.py"]
 
   api-service:
