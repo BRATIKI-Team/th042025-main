@@ -3,6 +3,7 @@ from openai import OpenAI
 
 from src.infrastructure.config import config
 
+
 class ImageGenerator:
     def __init__(self):
         self.__model_name = config.OPENAI_IMAGE_GEN_MODEL_NAME
@@ -15,15 +16,18 @@ class ImageGenerator:
         """
         return OpenAI(api_key=self.__api_key)
 
-    async def execute(self, image_prompt: str) -> str:
+    async def execute(self, image_prompt: str):
         """
         Generates image
         """
-        result = self.__client.images.generate(
-            model=self.__model_name,  # dall-e-3
-            prompt=image_prompt,
-            size="1024x1024",
-            quality="hd",
-            n=1
-        )
-        return result.data[0].url
+        try:
+            result = self.__client.images.generate(
+                model=self.__model_name,  # dall-e-3
+                prompt=image_prompt,
+                size="1024x1024",
+                quality="hd",
+                n=1,
+            )
+            return result.data[0].url
+        except Exception as e:
+            return None
