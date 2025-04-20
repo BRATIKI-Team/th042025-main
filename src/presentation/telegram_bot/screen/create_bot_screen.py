@@ -255,6 +255,10 @@ async def select_sources_handler(
         bool, await state.get_value("approved_at_least_one_source")
     )
 
+    await callback_query.message.edit_text(
+        text=("🔍 Шаг 5/5\n\n", "Выполняется поиск, пожалуйста, подождите.")
+    )
+
     pending_source = await get_pending_source_usecase.execute(bot_id=bot_id)
 
     if pending_source is None:
