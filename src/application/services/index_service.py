@@ -1,6 +1,7 @@
 from typing import List
 from llama_index.core import StorageContext, VectorStoreIndex, Document
 from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.core.schema import TextNode
 
 from src.domain.repository.chroma_repository import ChromaRepository
 from src.infrastructure.dao.summary_dao import SummaryDAO
@@ -27,13 +28,23 @@ class IndexService:
         Returns:
         A VectorStoreIndex object representing the created index for the summaries
         """
+        nodes = []
 
-        documents = [
-            Document(text=summary.summary, metadata={"title": summary.title})
-            for summary in summaries
-        ]
+        for summary in summaries:
+            text = f"{summary.title}\n\n{summary.content}"
 
-        return await self.__index(bot_id, documents)
+            metadata = {"title": summary.title}
+            metadata.update(summary.metadata)
+
+            text_node = TextNode(text=text, metadata=metadata)
+            nodes.append(text_node)
+
+        collection_name = self.__get_collection_name(bot_id)
+        if (await self.__chroma_repository.collection_exists(collection_name)):
+            return await self.__update_index(bot_id, nodes)
+        
+        return await self.__index(bot_id, nodes)
+
 
     def get_index(self, bot_id: str) -> VectorStoreIndex:
         """
@@ -58,7 +69,8 @@ class IndexService:
             embed_model=self.__embed_model,
         )
 
-    async def __index(self, bot_id: str, documents: List[Document]) -> VectorStoreIndex:
+
+    async def __index(self, collection_name: str, nodes: List[TextNode]) -> VectorStoreIndex:
         """
         Creates an index for a received documents. If an index already exists for the given chat_id,
         it will be dropped and recreated.
@@ -70,7 +82,6 @@ class IndexService:
         Returns:
         A VectorStoreIndex object representing the created index for the document
         """
-        collection_name = self.__get_collection_name(bot_id)
         await self.__chroma_repository.drop_collection_if_exists(collection_name)
 
         vector_store = self.__chroma_repository.get_or_create_vector_store(
@@ -78,9 +89,26 @@ class IndexService:
         )
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-        return VectorStoreIndex.from_documents(
-            documents, storage_context=storage_context, embed_model=self.__embed_model
+        return VectorStoreIndex(
+            nodes, storage_context=storage_context, embed_model=self.__embed_model
         )
+    
+
+    async def __update_index(self, collection_name: str, nodes: List[TextNode]) -> VectorStoreIndex:
+        vector_store = self.__chroma_repository.get_or_create_vector_store(
+            collection_name
+        )
+
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        index = VectorStoreIndex.from_vector_store(
+            vector_store=vector_store,
+            storage_context=storage_context,
+            embed_model=self.__embed_model,
+        )
+
+        index.insert_nodes(nodes)
+        return index
+
 
     @staticmethod
     def __get_collection_name(bot_id: str) -> str:
