@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from llama_index.core import StorageContext, VectorStoreIndex, Document
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.schema import TextNode
@@ -15,8 +15,9 @@ class IndexService:
             api_key=config.OPENAI_API_KEY.get_secret_value()
         )
 
+
     async def index_summaries(
-        self, bot_id: str, summaries: List[SummaryDAO]
+        self, bot_id: int, summaries: List[SummaryDAO]
     ) -> VectorStoreIndex:
         """
         Creates an index for a received summaries.
@@ -35,18 +36,19 @@ class IndexService:
 
             metadata = {"title": summary.title}
             metadata.update(summary.metadata)
+            sanitized_metadata = self.__sanitize_metadata(metadata)
 
-            text_node = TextNode(text=text, metadata=metadata)
+            text_node = TextNode(text=text, metadata=sanitized_metadata)
             nodes.append(text_node)
 
         collection_name = self.__get_collection_name(bot_id)
         if (await self.__chroma_repository.collection_exists(collection_name)):
-            return await self.__update_index(bot_id, nodes)
+            return await self.__update_index(collection_name, nodes)
         
-        return await self.__index(bot_id, nodes)
+        return await self.__index(collection_name, nodes)
 
 
-    def get_index(self, bot_id: str) -> VectorStoreIndex:
+    def get_index(self, bot_id: int) -> VectorStoreIndex:
         """
         Retrieves an existing index for querying purposes.
 
@@ -110,6 +112,27 @@ class IndexService:
         return index
 
 
+    def __sanitize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sanitizes metadata to ensure it only contains values that ChromaDB supports.
+        ChromaDB only supports str, int, float, and None values in metadata.
+
+        Args:
+            metadata: The metadata dictionary to sanitize
+
+        Returns:
+            A sanitized metadata dictionary with only supported value types
+        """
+        sanitized = {}
+        for key, value in metadata.items():
+            if isinstance(value, (str, int, float)) or value is None:
+                sanitized[key] = value
+            else:
+                # Convert other types to string representation
+                sanitized[key] = str(value)
+        return sanitized
+
+
     @staticmethod
-    def __get_collection_name(bot_id: str) -> str:
+    def __get_collection_name(bot_id: int) -> str:
         return f"bot_collection_{bot_id}"

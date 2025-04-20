@@ -54,15 +54,19 @@ class NotifyBotUsecase:
         )
 
         if len(messages) == 0:
-            print("NO MESSAGES")
             return
 
         summarized_messages = await self._workflow.start_workflow(
             bot.id, bot.description.value, messages
         )
 
+        print("--- MESSAGE RETURN ---")
+        print(summarized_messages)
+        if len(summarized_messages) == 0:
+            return
+
         # Save summaries to the database
-        await self._summary_repository.create_many(bot.id, summarized_messages)
+        # await self._summary_repository.create_many(bot.id, summarized_messages)
 
         # This could involve sending a message to a Telegram bot,
         # posting to a webhook, etc.

@@ -37,6 +37,17 @@ services:
       - db:/usr/app/db
     entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
 
+  web-service:
+    container_name: web-service
+    build:
+      context: ../th042025-client
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ../th042025-client/dist/th042025-client/browser:/usr/share/nginx/html
+
 volumes:
   logs:
   data:

@@ -1,4 +1,4 @@
-system_prompt_two=""" 
+system_prompt=""" 
 You will be given a list of messages.
 Each message contains a 'content' and 'id' fields.
 
@@ -6,7 +6,7 @@ A message is considered relevant if the content contains the phrase "{{topic}}" 
 
 Your task is to:
 1. Review the content of each message.
-2. Return the list of ids ofmessages that are relevant to the topic "{{topic}}".
+2. Return the list of ids of messages that are relevant to the topic "{{topic}}".
 4. If there is no message with relevant content, return an empty list.
 
 The message is considered relevant if:

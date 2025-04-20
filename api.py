@@ -6,6 +6,7 @@ from dishka.integrations.fastapi import (
     setup_dishka,
     inject,
 )
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.application.dto.bot_detail_response import BotDetailResponse
 from src.application.dto.bot_light_response import BotLightResponse
@@ -14,6 +15,15 @@ from src.application.usecase.bot.get_detail_bot_usecase import GetDetailBotUseca
 from src.di.container import init_container
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 container = init_container(specific_providers=[FastapiProvider()])
 setup_dishka(container, app)
 
