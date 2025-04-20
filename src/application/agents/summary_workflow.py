@@ -1,4 +1,5 @@
 from typing import List
+import asyncio
 
 from src.application.agents.image_gen.image_gen import ImageGenerator
 from src.application.agents.parser.parser_agent import ParserAgent
@@ -32,6 +33,8 @@ class SummaryWorkflow:
         sanitized_summaries = await self.__sanitize_summaries(bot_id, summaries)
         
         if (len(sanitized_summaries) > 0):
+            # index summaries so we can exclude from future summaries the content that we
+            # had already been sent to user
             await self.__index_service.index_summaries(bot_id, sanitized_summaries)
 
         # summaries_with_images = await self.__generate_images(sanitized_summaries)
@@ -87,7 +90,7 @@ class SummaryWorkflow:
 
     async def __generate_images(self, summaries: List[SummaryDto]) -> List[SummaryExtendedDto]:
         """
-        Generates images for the summaries.
+        Generates images for the summaries. If metadata contains attachments, uses those instead of generating new images.
 
         Args:
             summaries: The summaries to generate images for.
@@ -95,16 +98,25 @@ class SummaryWorkflow:
         Returns:
             The summaries with images.
         """
-        summaries = []
-        for summary in summaries:
-            image_generator = ImageGenerator()
-            #image_url = await image_generator.execute(summary.title)
+        async def process_summary(summary: SummaryDto) -> SummaryExtendedDto:
             image_url = None
-            summary = SummaryExtendedDto(
+            
+            # Check if metadata has attachments
+            if summary.metadata and "attachments" in summary.metadata:
+                return
+            
+            # Only generate image if no attachments were found
+            if not image_url:
+                image_generator = ImageGenerator()
+                image_url = await image_generator.execute(summary.title)
+            
+            return SummaryExtendedDto(
                 title=summary.title,
                 content=summary.content,
                 metadata=summary.metadata,
                 image_url=image_url
             )
-            summaries.append(summary)
-        return summaries
+
+        # Process summaries in parallel
+        tasks = [process_summary(summary) for summary in summaries]
+        return await asyncio.gather(*tasks)
