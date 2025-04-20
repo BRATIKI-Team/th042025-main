@@ -227,13 +227,13 @@ class UsecaseContainer(Provider):
         bot_repository: FromDishka[BotRepository],
         source_repository: FromDishka[SourceRepository],
         bot_user_repository: FromDishka[BotUserRepository],
-        message_repository: FromDishka[MessageRepository],
+        summary_repository: FromDishka[SummaryRepository],
     ) -> GetDetailBotUsecase:
         return GetDetailBotUsecase(
             bot_repository=bot_repository,
             source_repository=source_repository,
             bot_user_repository=bot_user_repository,
-            message_repository=message_repository,
+            summary_repository=summary_repository,
         )
 
     @provide(scope=Scope.APP)
