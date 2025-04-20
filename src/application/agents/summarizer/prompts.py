@@ -16,9 +16,9 @@ Your goal is to:
 
 4. Any summary should be only on Russian language. Translate everything to Russian.
 
-5. Dont add any information from metadata to the content.
+5. Dont add any information from *Metadata* to the *Content*
 
-6. Content possible can be short if messages' contents are short.
+6. Content possibly can be short if messages' contents are short.
 
 ### **Instructions**:
 - Identify messages that are similar, based on the content or topic.
