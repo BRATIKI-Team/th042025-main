@@ -14,6 +14,8 @@ Your goal is to:
 3. **Length Limit**: The **title** and **content** together should not exceed **1024 characters** in total.
    - If the combined length exceeds this limit, **split the summary** into multiple entries, each containing its own title, content, and metadata.
 
+4. Summary should be in the same language as the most messages.
+
 ### **Instructions**:
 - Identify messages that are similar, based on the content or topic.
 - When combining them:

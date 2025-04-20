@@ -22,16 +22,20 @@ Follow these rules:
     - Avoid repeating facts or messages already present in past notifications.
     - Only return cleaned summaries — do not include analysis or reasoning in the final output.
 
+6. Keep the summary in the same language as it is.
+
 ### **Output Format**:
-Your response should be a list of summaries, where each summary is represented as a dictionary with the following fields:
-```json
+Your response should be a list of summaries' objects (no any other additional text),
+where each summary is represented as a dictionary with the following fields:
+Result:
 [
   {
     "title": "Title of the Combined Summary",
     "content": "The full, rewritten text of the combined summary",
     "metadata": { 
       "key1": "value1", 
-      "key2": "value2" 
+      "key2": "value2",
+      ...
     }
   },
   ...

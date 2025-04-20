@@ -37,7 +37,6 @@ class SanitizerAgent:
         Create an agent for sanitizing summaries.
         """
         print("---**Sanitizer Agent** | creating | ....", end="\n\n")
-        print(f"---**Sanitizer Agent** | bot_id | => {self.__bot_id}", end="\n\n")
         print(
             f"---**Sanitizer Agent** | summaries_to_sanitize | => {self.__summaries_to_sanitize}",
             end="\n\n",
