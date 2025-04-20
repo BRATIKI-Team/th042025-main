@@ -15,7 +15,7 @@ class SummaryWorkflow:
 
     async def start_workflow(
         self, bot_id: int, topic: str, messages: List[MessageModel]
-    ) -> List[SummaryExtendedDto]:
+    ) -> List[SummaryDto]:
         """
         Starts the summary workflow.
 
@@ -34,8 +34,8 @@ class SummaryWorkflow:
         if (len(sanitized_summaries) > 0):
             await self.__index_service.index_summaries(bot_id, sanitized_summaries)
 
-        summaries_with_images = await self.__generate_images(sanitized_summaries)
-        return summaries_with_images
+        # summaries_with_images = await self.__generate_images(sanitized_summaries)
+        return sanitized_summaries
 
     async def __parse_messages(
         self, topic: str, messages: List[MessageModel]
