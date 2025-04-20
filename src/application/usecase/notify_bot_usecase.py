@@ -5,7 +5,13 @@ from datetime import datetime
 
 from aiogram import Bot
 from aiogram.enums import ParseMode
-from aiogram.types import InputFile, FSInputFile, InputMediaPhoto, InputMediaDocument, InputMediaVideo
+from aiogram.types import (
+    InputFile,
+    FSInputFile,
+    InputMediaPhoto,
+    InputMediaDocument,
+    InputMediaVideo,
+)
 
 from src.application.agents.summary_workflow import SummaryWorkflow
 from src.application.services import IndexService
@@ -96,61 +102,86 @@ class NotifyBotUsecase:
                     try:
                         if attachments:
                             # Group attachments by type
-                            photos = [att for att in attachments if att.get("type") == "photo"]
+                            photos = [
+                                att for att in attachments if att.get("type") == "photo"
+                            ]
                             # Videos are documents with video MIME type
-                            videos = [att for att in attachments if att.get("type") == "document" and att.get("mime_type", "").startswith("video/")]
+                            videos = [
+                                att
+                                for att in attachments
+                                if att.get("type") == "document"
+                                and att.get("mime_type", "").startswith("video/")
+                            ]
                             # Other documents (not videos)
-                            documents = [att for att in attachments if att.get("type") == "document" and not att.get("mime_type", "").startswith("video/")]
-                            
+                            documents = [
+                                att
+                                for att in attachments
+                                if att.get("type") == "document"
+                                and not att.get("mime_type", "").startswith("video/")
+                            ]
+
                             downloaded_files = []
-                            
+
                             try:
                                 # Handle media group (photos and videos together)
-                                media_group = []
+                                media_group: list[
+                                    InputMediaPhoto | InputMediaVideo
+                                ] = []
                                 has_media = False
-                                
+
                                 # Add photos to media group
                                 for i, photo in enumerate(photos):
-                                    photo_path = await self._telegram_repository.download_media(
-                                        channel_username=photo["channel_username"],
-                                        message_id=photo["message_id"],
-                                        file_name=photo["file_name"]
+                                    photo_path = (
+                                        await self._telegram_repository.download_media(
+                                            channel_username=photo["channel_username"],
+                                            message_id=photo["message_id"],
+                                            file_name=photo["file_name"],
+                                        )
                                     )
                                     downloaded_files.append(photo_path)
                                     has_media = True
-                                    
+
                                     # First media gets the caption
-                                    caption = message_text if len(media_group) == 0 else None
-                                    media_group.append(InputMediaPhoto(
-                                        media=FSInputFile(photo_path),
-                                        caption=caption,
-                                        parse_mode=ParseMode.MARKDOWN
-                                    ))
-                                
+                                    caption = (
+                                        message_text if len(media_group) == 0 else None
+                                    )
+                                    media_group.append(
+                                        InputMediaPhoto(
+                                            media=FSInputFile(photo_path),
+                                            caption=caption,
+                                            parse_mode=ParseMode.MARKDOWN,
+                                        )
+                                    )
+
                                 # Add videos to media group
                                 for i, video in enumerate(videos):
-                                    video_path = await self._telegram_repository.download_media(
-                                        channel_username=video["channel_username"],
-                                        message_id=video["message_id"],
-                                        file_name=video["file_name"]
+                                    video_path = (
+                                        await self._telegram_repository.download_media(
+                                            channel_username=video["channel_username"],
+                                            message_id=video["message_id"],
+                                            file_name=video["file_name"],
+                                        )
                                     )
                                     downloaded_files.append(video_path)
                                     has_media = True
-                                    
+
                                     # First media gets the caption
-                                    caption = message_text if len(media_group) == 0 else None
-                                    media_group.append(InputMediaVideo(
-                                        media=FSInputFile(video_path),
-                                        caption=caption,
-                                        parse_mode=ParseMode.MARKDOWN
-                                    ))
-                                
+                                    caption = (
+                                        message_text if len(media_group) == 0 else None
+                                    )
+                                    media_group.append(
+                                        InputMediaVideo(
+                                            media=FSInputFile(video_path),
+                                            caption=caption,
+                                            parse_mode=ParseMode.MARKDOWN,
+                                        )
+                                    )
+
                                 # Send media group if we have photos or videos
                                 if has_media:
                                     if len(media_group) > 1:
                                         await aiogram_bot.send_media_group(
-                                            chat_id=user_id,
-                                            media=media_group
+                                            chat_id=user_id, media=media_group
                                         )
                                     else:
                                         # Single photo
@@ -159,7 +190,7 @@ class NotifyBotUsecase:
                                                 chat_id=user_id,
                                                 photo=media_group[0].media,
                                                 caption=message_text,
-                                                parse_mode=ParseMode.MARKDOWN
+                                                parse_mode=ParseMode.MARKDOWN,
                                             )
                                         # Single video
                                         else:
@@ -167,33 +198,35 @@ class NotifyBotUsecase:
                                                 chat_id=user_id,
                                                 video=media_group[0].media,
                                                 caption=message_text,
-                                                parse_mode=ParseMode.MARKDOWN
+                                                parse_mode=ParseMode.MARKDOWN,
                                             )
-                                
+
                                 # Handle other documents (not in media group)
                                 for doc in documents:
-                                    file_path = await self._telegram_repository.download_media(
-                                        channel_username=doc["channel_username"],
-                                        message_id=doc["message_id"],
-                                        file_name=doc["file_name"]
+                                    file_path = (
+                                        await self._telegram_repository.download_media(
+                                            channel_username=doc["channel_username"],
+                                            message_id=doc["message_id"],
+                                            file_name=doc["file_name"],
+                                        )
                                     )
                                     downloaded_files.append(file_path)
-                                    
+
                                     await aiogram_bot.send_document(
                                         chat_id=user_id,
                                         document=FSInputFile(file_path),
                                         caption=message_text,
-                                        parse_mode=ParseMode.MARKDOWN
+                                        parse_mode=ParseMode.MARKDOWN,
                                     )
-                                
+
                                 # If we only have documents (no photos/videos), send text first
                                 if not has_media and documents:
                                     await aiogram_bot.send_message(
                                         chat_id=user_id,
                                         text=message_text,
-                                        parse_mode=ParseMode.MARKDOWN
+                                        parse_mode=ParseMode.MARKDOWN,
                                     )
-                            
+
                             finally:
                                 # Clean up downloaded files
                                 for file_path in downloaded_files:
@@ -201,14 +234,16 @@ class NotifyBotUsecase:
                                         if os.path.exists(file_path):
                                             os.remove(file_path)
                                     except Exception as e:
-                                        logger.error(f"Failed to delete file {file_path}: {str(e)}")
-                        
+                                        logger.error(
+                                            f"Failed to delete file {file_path}: {str(e)}"
+                                        )
+
                         else:
                             # If no attachments, just send text message
                             await aiogram_bot.send_message(
                                 chat_id=user_id,
                                 text=message_text,
-                                parse_mode=ParseMode.MARKDOWN
+                                parse_mode=ParseMode.MARKDOWN,
                             )
 
                         logger.info(

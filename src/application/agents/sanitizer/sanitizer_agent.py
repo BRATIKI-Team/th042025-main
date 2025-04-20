@@ -55,7 +55,7 @@ class SanitizerAgent:
         """
         Create a query engine tool for a summary.
         """
-        index = self.__index_service.get_index(str(self.__bot_id))
+        index = self.__index_service.get_index(self.__bot_id)
 
         retriever = VectorIndexRetriever(index=index, similarity_top_k=5, verbose=True)
 
@@ -89,7 +89,7 @@ class SanitizerAgent:
         result = await self.__agent.run(summaries_json)
 
         try:
-            content =  str(result.response.content).lstrip("```json").rstrip("```")
+            content = str(result.response.content).lstrip("```json").rstrip("```")
             print("--- JSON STRING ---")
 
             print(content)
