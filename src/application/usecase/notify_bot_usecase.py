@@ -1,6 +1,7 @@
 from typing import List
 import logging
 import os
+import asyncio
 from datetime import datetime
 
 from aiogram import Bot
@@ -32,6 +33,11 @@ class NotifyBotUsecase:
     Usecase for notifying a bot about new messages.
     """
 
+    # Семафор для предотвращения гонок при одновременном вызове
+    _semaphore = asyncio.Semaphore(1)
+    _semaphore_timeout = 300  # 5 минут таймаут
+    _active_tasks = set()  # Множество активных задач
+
     def __init__(
         self,
         bot_repository: BotRepository,
@@ -55,6 +61,28 @@ class NotifyBotUsecase:
         Args:
             bot_id: The ID of the bot to notify
             messages: The messages to notify about
+        """
+        task_id = id(asyncio.current_task())
+        self._active_tasks.add(task_id)
+        logger.info(f"Starting notification for bot {bot_id} (task {task_id}, active tasks: {len(self._active_tasks)})")
+
+        try:
+            # Пытаемся получить семафор с таймаутом
+            try:
+                async with asyncio.timeout(self._semaphore_timeout):
+                    async with self._semaphore:
+                        logger.info(f"Acquired semaphore for bot {bot_id} (task {task_id})")
+                        await self._execute_with_lock(bot_id)
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout waiting for semaphore for bot {bot_id} (task {task_id})")
+                raise
+        finally:
+            self._active_tasks.remove(task_id)
+            logger.info(f"Finished notification for bot {bot_id} (task {task_id}, remaining tasks: {len(self._active_tasks)})")
+
+    async def _execute_with_lock(self, bot_id: int) -> None:
+        """
+        Execute the usecase with acquired lock.
         """
         # Get the bot
         bot = await self._bot_repository.read_by_id(bot_id)
