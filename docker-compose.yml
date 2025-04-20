@@ -23,6 +23,19 @@ services:
       - db:/usr/app/db
     entrypoint: ["python", "bot_worker.py"]
 
+  bot-scheduler-service:
+    container_name: bot-scheduler-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - logs:/usr/app/logs
+      - data:/usr/app/data
+      - db:/usr/app/db
+      - ./.scheduler.env:/usr/app/.env
+    entrypoint: ["python", "scheduler.py"]
+
   api-service:
     container_name: api-service
     build:

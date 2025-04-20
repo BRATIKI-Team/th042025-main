@@ -158,18 +158,3 @@ class MessageRepositoryImpl(MessageRepository):
 
         messages = await query
         return [MessageDAO.from_dao(dao) for dao in messages]
-
-    async def get_metrics(self, source_ids: List[int]) -> Dict[datetime, int]:
-        """
-        Get metrics for a bot.
-        """
-        daos = await MessageDAO.objects().where(MessageDAO.source_id.is_in(source_ids))
-
-        messages = [MessageDAO.from_dao(dao) for dao in daos]
-
-        metrics: dict[datetime, int] = {}
-        for message in messages:
-            if message.published_at is not None:
-                metrics[message.published_at] = metrics.get(message.published_at, 0) + 1
-
-        return metrics

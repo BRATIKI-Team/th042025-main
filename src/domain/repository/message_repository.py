@@ -74,10 +74,3 @@ class MessageRepository(ABC):
             List[MessageModel]: A list of MessageModel objects.
         """
         pass
-
-    @abstractmethod
-    async def get_metrics(self, source_ids: List[int]) -> Dict[datetime, int]:
-        """
-        Get metrics for a bot.
-        """
-        pass
