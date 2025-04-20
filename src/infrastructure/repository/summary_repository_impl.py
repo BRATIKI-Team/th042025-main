@@ -43,7 +43,7 @@ class SummaryRepositoryImpl(SummaryRepository):
         """
         daos = await SummaryDAO.objects().where(SummaryDAO.bot_id == bot_id)
 
-        metrics: dict[datetime, int] = {}
+        metrics: dict[str, int] = {}
         for summary in daos:
             metrics[summary.created_at] = metrics.get(summary.created_at, 0) + 1
         return metrics
