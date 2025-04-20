@@ -16,6 +16,10 @@ Your goal is to:
 
 4. Summary should be in the same language as the most messages.
 
+5. Dont add any information from metadata to the content.
+
+6. Content possible can be short if messages' contents are short.
+
 ### **Instructions**:
 - Identify messages that are similar, based on the content or topic.
 - When combining them:
@@ -25,7 +29,6 @@ Your goal is to:
 
 ### **Output Format**:
 Your response should be a list of summaries, where each summary is represented as a dictionary with the following fields:
-```json
 [
   {
     "title": "Title of the Combined Summary",
