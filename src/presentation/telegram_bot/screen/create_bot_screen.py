@@ -256,7 +256,7 @@ async def select_sources_handler(
     )
 
     await callback_query.message.edit_text(
-        text=("🔍 Шаг 5/5\n\n", "Выполняется поиск, пожалуйста, подождите.")
+        text="🔍 Шаг 5/5\n\n" "Выполняется поиск, пожалуйста, подождите."
     )
 
     pending_source = await get_pending_source_usecase.execute(bot_id=bot_id)
