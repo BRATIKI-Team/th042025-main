@@ -67,11 +67,13 @@ class ParserAgent:
 
         try:
             output_messages = [
-                message for message in messages
-                if str(message.id) in result.output
+                message for message in messages if str(message.id) in result.output
             ]
 
-            print(f"---**Parser Agent** | output messages | => {output_messages}", end="\n\n")
+            print(
+                f"---**Parser Agent** | output messages | => {output_messages}",
+                end="\n\n",
+            )
             return output_messages
         except Exception as e:
             print(

@@ -21,7 +21,7 @@ class SummaryRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_metrics(self, bot_id: int) -> Dict[datetime, int]:
+    async def get_metrics(self, bot_id: int) -> Dict[str, int]:
         """
         Get metrics for a bot.
         """

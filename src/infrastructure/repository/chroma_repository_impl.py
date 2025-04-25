@@ -8,7 +8,6 @@ class ChromaRepositoryImpl(ChromaRepository):
     def __init__(self):
         self.__db = CHROMA_DB
 
-
     def get_or_create_vector_store(self, collection_name: str) -> ChromaVectorStore:
         """
         Retrieves a vector store for a given collection name. If the collection does not exist, it will be created.
@@ -24,7 +23,6 @@ class ChromaRepositoryImpl(ChromaRepository):
 
         return ChromaVectorStore(collection)
 
-
     async def drop_collection_if_exists(self, collection_name: str) -> None:
         """
         Drops a collection if it exists.
@@ -36,7 +34,6 @@ class ChromaRepositoryImpl(ChromaRepository):
             self.__db.delete_collection(collection_name)
         except Exception as e:
             print(f"Error dropping collection {collection_name}: {e}")
-
 
     async def collection_exists(self, collection_name: str) -> bool:
         """
@@ -53,7 +50,6 @@ class ChromaRepositoryImpl(ChromaRepository):
         except Exception as e:
             print(f"Error checking collection {collection_name}: {e}")
             return False
-
 
     def _get_or_create_collection(self, name: str) -> Collection:
         """

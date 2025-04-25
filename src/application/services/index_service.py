@@ -15,7 +15,6 @@ class IndexService:
             api_key=config.OPENAI_API_KEY.get_secret_value()
         )
 
-
     async def index_summaries(
         self, bot_id: int, summaries: List[SummaryDAO]
     ) -> VectorStoreIndex:
@@ -42,11 +41,10 @@ class IndexService:
             nodes.append(text_node)
 
         collection_name = self.__get_collection_name(bot_id)
-        if (await self.__chroma_repository.collection_exists(collection_name)):
+        if await self.__chroma_repository.collection_exists(collection_name):
             return await self.__update_index(collection_name, nodes)
-        
-        return await self.__index(collection_name, nodes)
 
+        return await self.__index(collection_name, nodes)
 
     def get_index(self, bot_id: int) -> VectorStoreIndex:
         """
@@ -71,8 +69,9 @@ class IndexService:
             embed_model=self.__embed_model,
         )
 
-
-    async def __index(self, collection_name: str, nodes: List[TextNode]) -> VectorStoreIndex:
+    async def __index(
+        self, collection_name: str, nodes: List[TextNode]
+    ) -> VectorStoreIndex:
         """
         Creates an index for a received documents. If an index already exists for the given chat_id,
         it will be dropped and recreated.
@@ -94,9 +93,10 @@ class IndexService:
         return VectorStoreIndex(
             nodes, storage_context=storage_context, embed_model=self.__embed_model
         )
-    
 
-    async def __update_index(self, collection_name: str, nodes: List[TextNode]) -> VectorStoreIndex:
+    async def __update_index(
+        self, collection_name: str, nodes: List[TextNode]
+    ) -> VectorStoreIndex:
         vector_store = self.__chroma_repository.get_or_create_vector_store(
             collection_name
         )
@@ -110,7 +110,6 @@ class IndexService:
 
         index.insert_nodes(nodes)
         return index
-
 
     def __sanitize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -131,7 +130,6 @@ class IndexService:
                 # Convert other types to string representation
                 sanitized[key] = str(value)
         return sanitized
-
 
     @staticmethod
     def __get_collection_name(bot_id: int) -> str:

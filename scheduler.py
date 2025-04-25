@@ -49,10 +49,14 @@ async def process_source_group(
             await get_source_messages_usecase.execute(grouped_source)
             logger.info(f"Successfully processed source group: {grouped_source.url}")
         except asyncio.CancelledError:
-            logger.warning(f"Source group processing was cancelled: {grouped_source.url}")
+            logger.warning(
+                f"Source group processing was cancelled: {grouped_source.url}"
+            )
             return
         except Exception as e:
-            logger.error(f"Error getting messages for source group {grouped_source.url}: {str(e)}")
+            logger.error(
+                f"Error getting messages for source group {grouped_source.url}: {str(e)}"
+            )
             return
 
         now = datetime.now()
@@ -80,7 +84,6 @@ async def process_source_group(
         logger.error(f"Error processing source group {grouped_source.url}: {str(e)}")
 
 
-
 def create_job_id(period: int, source_url: str) -> str:
     """
     Create a unique job ID for a source group.
@@ -99,16 +102,18 @@ def update_scheduler_jobs(
     """
     # Get current active job IDs
     current_job_ids = set(active_jobs.keys())
-    
+
     # Create a set of required job IDs based on current sources
     required_job_ids = set()
     for source in grouped_sources:
         job_id = create_job_id(source.notification_period, source.url)
         required_job_ids.add(job_id)
-        
+
         # If this is a new job, add it to the scheduler
         if job_id not in current_job_ids:
-            logger.info(f"Adding new job for source {source.url} with period {source.notification_period}")
+            logger.info(
+                f"Adding new job for source {source.url} with period {source.notification_period}"
+            )
             job = scheduler.add_job(
                 process_sources_for_period,
                 IntervalTrigger(seconds=source.notification_period),
@@ -117,7 +122,7 @@ def update_scheduler_jobs(
                 replace_existing=True,
             )
             active_jobs[job_id] = job
-    
+
     # Remove jobs that are no longer needed
     jobs_to_remove = current_job_ids - required_job_ids
     for job_id in jobs_to_remove:
@@ -135,11 +140,11 @@ async def poll_sources(
     """
     Poll for new sources and update scheduler jobs.
     """
-    while not shutdown_event.is_set():
+    while shutdown_event is None or not shutdown_event.is_set():
         try:
             # Get current grouped sources
             grouped_sources = await get_grouped_sources_usecase.execute()
-            
+
             # Update scheduler jobs
             update_scheduler_jobs(
                 scheduler,
@@ -147,10 +152,10 @@ async def poll_sources(
                 get_source_messages_usecase,
                 notify_bot_usecase,
             )
-            
+
             # Wait for next polling interval
             await asyncio.sleep(source_polling_interval)
-            
+
         except asyncio.CancelledError:
             logger.info("Source polling was cancelled")
             break

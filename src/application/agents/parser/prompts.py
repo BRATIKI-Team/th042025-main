@@ -1,4 +1,4 @@
-system_prompt=""" 
+system_prompt = """
 You will be given a list of messages.
 Each message contains a 'content' and 'id' fields.
 

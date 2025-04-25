@@ -8,7 +8,11 @@ from src.domain.repository.user_repository import UserRepository
 
 
 async def check_updates(
-    bot_user_repository: BotUserRepository, user_repository: UserRepository, bot_id: int, token: str, offset: int
+    bot_user_repository: BotUserRepository,
+    user_repository: UserRepository,
+    bot_id: int,
+    token: str,
+    offset: int,
 ) -> int:
     bot = Bot(token=token)
 
@@ -17,7 +21,9 @@ async def check_updates(
 
     for update in updates:
         if update.message and update.message.text == "/start":
-            await user_repository.ensure_user_exists(user_id=update.message.from_user.id)
+            await user_repository.ensure_user_exists(
+                user_id=update.message.from_user.id
+            )
             await bot_user_repository.create_bot_user(
                 bot_id=bot_id, user_id=update.message.from_user.id
             )

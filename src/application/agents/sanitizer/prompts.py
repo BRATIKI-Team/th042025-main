@@ -32,8 +32,8 @@ Result:
   {
     "title": "Title of the Combined Summary",
     "content": "The full, rewritten text of the combined summary",
-    "metadata": { 
-      "key1": "value1", 
+    "metadata": {
+      "key1": "value1",
       "key2": "value2",
       ...
     }

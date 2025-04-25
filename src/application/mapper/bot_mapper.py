@@ -21,7 +21,7 @@ class BotMapper:
         bot: BotModel,
         sources: list[SourceModel],
         users_count: int,
-        metrics: dict[datetime, int],
+        metrics: dict[str, int],
     ) -> BotDetailResponse:
         return BotDetailResponse(
             id=bot.id,

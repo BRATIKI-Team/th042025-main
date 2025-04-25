@@ -15,7 +15,8 @@ class TelegramClientFactory:
     Factory for creating and managing TelegramClient instances.
     Implements Singleton pattern to ensure only one client instance exists.
     """
-    _instance: Optional['TelegramClientFactory'] = None
+
+    _instance: Optional["TelegramClientFactory"] = None
     _client: Optional[TelegramClient] = None
     _lock = asyncio.Lock()
     _max_retries = 3
@@ -72,10 +73,15 @@ class TelegramClientFactory:
                 return client
             except Exception as e:
                 if attempt == self._max_retries - 1:
-                    logger.error(f"Failed to connect to Telegram after {self._max_retries} attempts: {str(e)}")
+                    logger.error(
+                        f"Failed to connect to Telegram after {self._max_retries} attempts: {str(e)}"
+                    )
                     raise
-                logger.warning(f"Failed to connect to Telegram (attempt {attempt + 1}/{self._max_retries}): {str(e)}")
+                logger.warning(
+                    f"Failed to connect to Telegram (attempt {attempt + 1}/{self._max_retries}): {str(e)}"
+                )
                 await asyncio.sleep(self._retry_delay)
+        raise Exception("Failed to connect to Telegram")
 
     async def close(self):
         """
@@ -88,4 +94,4 @@ class TelegramClientFactory:
                 except Exception as e:
                     logger.error(f"Error disconnecting Telegram client: {str(e)}")
                 finally:
-                    self._client = None 
+                    self._client = None

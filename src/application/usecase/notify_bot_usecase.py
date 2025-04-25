@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 import logging
 import os
 import asyncio
@@ -34,9 +34,9 @@ class NotifyBotUsecase:
     Usecase for notifying a bot about new messages.
     """
 
-    _semaphore_timeout = 300  # 5 минут таймаут
-    _active_tasks = set()  # Множество активных задач
-    _initial_delay = 15  # 15 секунд задержки перед началом обработки
+    _semaphore_timeout = 300
+    _active_tasks: Set[int] = set()
+    _initial_delay = 15
 
     def __init__(
         self,
@@ -65,7 +65,9 @@ class NotifyBotUsecase:
         """
         task_id = id(asyncio.current_task())
         self._active_tasks.add(task_id)
-        logger.info(f"Starting notification for bot {bot_id} (task {task_id}, active tasks: {len(self._active_tasks)})")
+        logger.info(
+            f"Starting notification for bot {bot_id} (task {task_id}, active tasks: {len(self._active_tasks)})"
+        )
 
         try:
             # Пытаемся получить семафор с таймаутом
@@ -73,19 +75,27 @@ class NotifyBotUsecase:
                 semaphore = self._lock_manager.get_semaphore(f"notify_bot_{bot_id}")
                 async with asyncio.timeout(self._semaphore_timeout):
                     async with semaphore:
-                        logger.info(f"Acquired semaphore for bot {bot_id} (task {task_id})")
-                        
+                        logger.info(
+                            f"Acquired semaphore for bot {bot_id} (task {task_id})"
+                        )
+
                         # Ждем некоторое время, чтобы все сообщения успели загрузиться
-                        logger.info(f"Waiting {self._initial_delay} seconds for messages to load...")
+                        logger.info(
+                            f"Waiting {self._initial_delay} seconds for messages to load..."
+                        )
                         await asyncio.sleep(self._initial_delay)
-                        
+
                         await self._execute_with_lock(bot_id)
             except asyncio.TimeoutError:
-                logger.error(f"Timeout waiting for semaphore for bot {bot_id} (task {task_id})")
+                logger.error(
+                    f"Timeout waiting for semaphore for bot {bot_id} (task {task_id})"
+                )
                 raise
         finally:
             self._active_tasks.remove(task_id)
-            logger.info(f"Finished notification for bot {bot_id} (task {task_id}, remaining tasks: {len(self._active_tasks)})")
+            logger.info(
+                f"Finished notification for bot {bot_id} (task {task_id}, remaining tasks: {len(self._active_tasks)})"
+            )
 
     async def _execute_with_lock(self, bot_id: int) -> None:
         """
@@ -137,49 +147,63 @@ class NotifyBotUsecase:
                     # Group attachments by type
                     photos = [att for att in attachments if att.get("type") == "photo"]
                     # Videos are documents with video MIME type
-                    videos = [att for att in attachments if att.get("type") == "document" and att.get("mime_type", "").startswith("video/")]
+                    videos = [
+                        att
+                        for att in attachments
+                        if att.get("type") == "document"
+                        and att.get("mime_type", "").startswith("video/")
+                    ]
                     # Other documents (not videos)
-                    documents = [att for att in attachments if att.get("type") == "document" and not att.get("mime_type", "").startswith("video/")]
-                    
+                    documents = [
+                        att
+                        for att in attachments
+                        if att.get("type") == "document"
+                        and not att.get("mime_type", "").startswith("video/")
+                    ]
+
                     downloaded_files = []
-                    media_group = []
+                    media_group: List[InputMediaPhoto | InputMediaVideo] = []
                     has_media = False
-                    
+
                     try:
                         # Download all photos and videos once
                         for photo in photos:
                             photo_path = await self._telegram_repository.download_media(
                                 channel_username=photo["channel_username"],
                                 message_id=photo["message_id"],
-                                file_name=photo["file_name"]
+                                file_name=photo["file_name"],
                             )
                             downloaded_files.append(photo_path)
                             has_media = True
-                            
+
                             # First media gets the caption
                             caption = message_text if len(media_group) == 0 else None
-                            media_group.append(InputMediaPhoto(
-                                media=FSInputFile(photo_path),
-                                caption=caption,
-                                parse_mode=ParseMode.MARKDOWN
-                            ))
-                        
+                            media_group.append(
+                                InputMediaPhoto(
+                                    media=FSInputFile(photo_path),
+                                    caption=caption,
+                                    parse_mode=ParseMode.MARKDOWN,
+                                )
+                            )
+
                         for video in videos:
                             video_path = await self._telegram_repository.download_media(
                                 channel_username=video["channel_username"],
                                 message_id=video["message_id"],
-                                file_name=video["file_name"]
+                                file_name=video["file_name"],
                             )
                             downloaded_files.append(video_path)
                             has_media = True
-                            
+
                             # First media gets the caption
                             caption = message_text if len(media_group) == 0 else None
-                            media_group.append(InputMediaVideo(
-                                media=FSInputFile(video_path),
-                                caption=caption,
-                                parse_mode=ParseMode.MARKDOWN
-                            ))
+                            media_group.append(
+                                InputMediaVideo(
+                                    media=FSInputFile(video_path),
+                                    caption=caption,
+                                    parse_mode=ParseMode.MARKDOWN,
+                                )
+                            )
 
                         # Download all documents once
                         document_files = []
@@ -187,7 +211,7 @@ class NotifyBotUsecase:
                             file_path = await self._telegram_repository.download_media(
                                 channel_username=doc["channel_username"],
                                 message_id=doc["message_id"],
-                                file_name=doc["file_name"]
+                                file_name=doc["file_name"],
                             )
                             downloaded_files.append(file_path)
                             document_files.append((file_path, doc))
@@ -199,8 +223,7 @@ class NotifyBotUsecase:
                                 if has_media:
                                     if len(media_group) > 1:
                                         await aiogram_bot.send_media_group(
-                                            chat_id=user_id,
-                                            media=media_group
+                                            chat_id=user_id, media=media_group
                                         )
                                     else:
                                         # Single photo
@@ -209,7 +232,7 @@ class NotifyBotUsecase:
                                                 chat_id=user_id,
                                                 photo=media_group[0].media,
                                                 caption=message_text,
-                                                parse_mode=ParseMode.MARKDOWN
+                                                parse_mode=ParseMode.MARKDOWN,
                                             )
                                         # Single video
                                         else:
@@ -217,24 +240,24 @@ class NotifyBotUsecase:
                                                 chat_id=user_id,
                                                 video=media_group[0].media,
                                                 caption=message_text,
-                                                parse_mode=ParseMode.MARKDOWN
+                                                parse_mode=ParseMode.MARKDOWN,
                                             )
-                                
+
                                 # Send documents
                                 for file_path, _ in document_files:
                                     await aiogram_bot.send_document(
                                         chat_id=user_id,
                                         document=FSInputFile(file_path),
                                         caption=message_text,
-                                        parse_mode=ParseMode.MARKDOWN
+                                        parse_mode=ParseMode.MARKDOWN,
                                     )
-                                
+
                                 # If we only have documents (no photos/videos), send text first
                                 if not has_media and documents:
                                     await aiogram_bot.send_message(
                                         chat_id=user_id,
                                         text=message_text,
-                                        parse_mode=ParseMode.MARKDOWN
+                                        parse_mode=ParseMode.MARKDOWN,
                                     )
 
                                 logger.info(
@@ -244,7 +267,7 @@ class NotifyBotUsecase:
                                 logger.error(
                                     f"Failed to send message to user {user_id}: {str(e)}"
                                 )
-                    
+
                     finally:
                         # Clean up downloaded files
                         for file_path in downloaded_files:
@@ -252,8 +275,10 @@ class NotifyBotUsecase:
                                 if os.path.exists(file_path):
                                     os.remove(file_path)
                             except Exception as e:
-                                logger.error(f"Failed to delete file {file_path}: {str(e)}")
-                
+                                logger.error(
+                                    f"Failed to delete file {file_path}: {str(e)}"
+                                )
+
                 else:
                     # If no attachments, just send text message to all users
                     for user_id in user_ids:
@@ -261,7 +286,7 @@ class NotifyBotUsecase:
                             await aiogram_bot.send_message(
                                 chat_id=user_id,
                                 text=message_text,
-                                parse_mode=ParseMode.MARKDOWN
+                                parse_mode=ParseMode.MARKDOWN,
                             )
                             logger.info(
                                 f"Sent text notification to user {user_id} for bot {bot_id}"

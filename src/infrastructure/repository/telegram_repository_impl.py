@@ -155,14 +155,15 @@ class TelegramRepositoryImpl(TelegramRepository):
                                 # Add attachments if present
                                 if message.media:
                                     attachments = await self._get_message_attachments(
-                                        channel_username,
-                                        message
+                                        channel_username, message
                                     )
                                     messages_dict[message.id].attachments.extend(
                                         attachments
                                     )
                 except asyncio.CancelledError:
-                    logging.warning(f"Message retrieval was cancelled for channel {channel_username}")
+                    logging.warning(
+                        f"Message retrieval was cancelled for channel {channel_username}"
+                    )
                     # Return whatever messages we've collected so far
                     messages = list(messages_dict.values())
                     messages.sort(key=lambda x: x.message_id, reverse=True)
@@ -188,7 +189,9 @@ class TelegramRepositoryImpl(TelegramRepository):
                     # Add attachments from all messages in group
                     for msg in group:
                         if msg.media:
-                            attachments = await self._get_message_attachments(channel_username, msg)
+                            attachments = await self._get_message_attachments(
+                                channel_username, msg
+                            )
                             main_msg.attachments.extend(attachments)
 
                     messages_dict[main_message.id] = main_msg
@@ -209,9 +212,7 @@ class TelegramRepositoryImpl(TelegramRepository):
                 raise TelegramError(f"Message retrieval failed: {str(e)}")
 
     async def _get_message_attachments(
-        self,
-        channel_username: str,
-        message: TelethonMessage
+        self, channel_username: str, message: TelethonMessage
     ) -> List[ChannelAttachmentModel]:
         """
         Extract attachments from a Telegram message
@@ -285,9 +286,7 @@ class TelegramRepositoryImpl(TelegramRepository):
                 entity = await self._tg_client.engine.get_entity(channel_username)
 
                 if not isinstance(entity, TelethonChannel):
-                    raise TelegramError(
-                        f"Entity {channel_username} is not a channel"
-                    )
+                    raise TelegramError(f"Entity {channel_username} is not a channel")
 
                 full_channel = await self._tg_client.engine.get_entity(entity)
 

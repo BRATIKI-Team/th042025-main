@@ -13,4 +13,4 @@ class BotDetailResponse(BaseModel):
     status: BotStatus
     users_count: int
     sources: list[SourceResponse]
-    metrics: dict[datetime, int]
+    metrics: dict[str, int]

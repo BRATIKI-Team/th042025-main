@@ -19,5 +19,8 @@ class SummaryDto(BaseModel):
         example={"source": "https://www.google.com"},
     )
 
+
 class SummaryExtendedDto(SummaryDto):
-    image_url: Optional[str] = Field(default=None, description="URL of the image associated with the summary")
+    image_url: Optional[str] = Field(
+        default=None, description="URL of the image associated with the summary"
+    )

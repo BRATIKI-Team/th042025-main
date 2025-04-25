@@ -9,7 +9,8 @@ class LockManager:
     """
     Singleton class for managing locks across the application.
     """
-    _instance: Optional['LockManager'] = None
+
+    _instance: Optional["LockManager"] = None
     _locks: Dict[str, asyncio.Lock] = {}
     _semaphores: Dict[str, asyncio.Semaphore] = {}
 
@@ -32,4 +33,4 @@ class LockManager:
         """
         if key not in self._semaphores:
             self._semaphores[key] = asyncio.Semaphore(value)
-        return self._semaphores[key] 
+        return self._semaphores[key]

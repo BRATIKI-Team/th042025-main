@@ -37,13 +37,15 @@ class SummaryRepositoryImpl(SummaryRepository):
         # Return the IDs of the created summaries
         return [dao["id"] for dao in created_daos]
 
-    async def get_metrics(self, bot_id: int) -> Dict[datetime, int]:
+    async def get_metrics(self, bot_id: int) -> Dict[str, int]:
         """
         Get metrics for a bot.
         """
         daos = await SummaryDAO.objects().where(SummaryDAO.bot_id == bot_id)
 
         metrics: dict[str, int] = {}
+
         for summary in daos:
             metrics[summary.created_at] = metrics.get(summary.created_at, 0) + 1
+
         return metrics

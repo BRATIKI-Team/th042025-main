@@ -11,9 +11,12 @@ from src.infrastructure.config import config
 from src.infrastructure.tg.telegram_client import TelegramClient
 from src.infrastructure.tg.telegram_client_factory import TelegramClientFactory
 
+
 class UtilsContainer(Provider):
     @provide(scope=Scope.APP)
-    async def telegram_client(self, factory: FromDishka[TelegramClientFactory]) -> TelegramClient:
+    async def telegram_client(
+        self, factory: FromDishka[TelegramClientFactory]
+    ) -> TelegramClient:
         """
         Provides a TelegramClient instance through the factory.
         The factory ensures we have a single, connected client instance.
