@@ -51,5 +51,20 @@ services:
 
 volumes:
   logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs
   data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
   db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./db
