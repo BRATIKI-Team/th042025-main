@@ -7,12 +7,14 @@ from src.application.agents.summarizer.summarizer_agent import SummarizerAgent
 from src.application.dto.summary_dto import SummaryDto
 from src.application.services.index_service import IndexService
 from src.domain.model.message_model import MessageModel
+from src.infrastructure.utils.rate_limiter import rate_limit
 
 
 class SummaryWorkflow:
     def __init__(self, index_service: IndexService):
         self.__index_service = index_service
 
+    @rate_limit(max_concurrent=3)  # TODO: experiment with different values
     async def start_workflow(
         self, bot_id: int, topic: str, messages: List[MessageModel]
     ) -> List[SummaryDto]:

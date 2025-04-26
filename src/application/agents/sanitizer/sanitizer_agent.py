@@ -71,13 +71,7 @@ class SanitizerAgent:
             description=f"Provides information about possible existing summaries in db about - {summary.title}.",
         )
 
-    @backoff(
-        exception=RateLimitError,
-        max_tries=5,
-        max_time=60,
-        initial_delay=1.0,
-        exponential_base=2.0,
-    )
+    @backoff(exception=RateLimitError)
     async def execute(self) -> List[SummaryDto]:
         """
         Sanitizes the summaries of a bot.

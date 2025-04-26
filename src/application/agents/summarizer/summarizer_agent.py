@@ -35,13 +35,7 @@ class SummarizerAgent:
             system_prompt=system_prompt,
         )
 
-    @backoff(
-        exception=RateLimitError,
-        max_tries=5,
-        max_time=60,
-        initial_delay=1.0,
-        exponential_base=2.0,
-    )
+    @backoff(exception=RateLimitError)
     async def execute(self, messages: List[MessageModel]) -> List[SummaryDto]:
         """
         Execute the summarizer agent.

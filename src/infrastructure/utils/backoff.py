@@ -7,8 +7,8 @@ from datetime import datetime
 
 def backoff(
     exception: Type[Exception],
-    max_tries: int = 5,
-    max_time: int = 60,  # seconds
+    max_tries: int = 20,
+    max_time: int = 120,  # seconds
     initial_delay: float = 1.0,
     exponential_base: float = 2.0,
     logger: Optional[logging.Logger] = None,
