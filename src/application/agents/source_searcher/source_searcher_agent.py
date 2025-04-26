@@ -28,7 +28,7 @@ class SourceSearcherAgent:
             retries=10,  # Up to 10 retries because of the rate limit
         )
 
-    @backoff(exception=RateLimitError)
+    @backoff(exception=Exception)
     async def execute(self, topic: str) -> List[SourceGenerateResponse]:
         """
         Execute the agent to search for Telegram channels.
