@@ -5,11 +5,13 @@ from src.di.container import init_container
 from src.infrastructure.tg.telegram_client_factory import TelegramClientFactory
 
 
-async def init_parser() -> None:
+async def init_parser(session_file: str | None = None) -> None:
     container = init_container()
 
     telegram_client_factory = await container.get(TelegramClientFactory)
-    telegram_client = await telegram_client_factory.get_client()
+    telegram_client = await telegram_client_factory.get_client(
+        session_file=session_file
+    )
 
     if not await telegram_client.engine.is_user_authorized():
         phone = input("Enter your phone number: ")
@@ -24,4 +26,11 @@ async def init_parser() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(init_parser())
+    import sys
+
+    session_file: str | None = None
+
+    if len(sys.argv) > 1:
+        session_file = sys.argv[1]
+
+    asyncio.run(init_parser(session_file=session_file))

@@ -27,7 +27,7 @@ class TelegramClientFactory:
             cls._instance = super(TelegramClientFactory, cls).__new__(cls)
         return cls._instance
 
-    async def get_client(self) -> TelegramClient:
+    async def get_client(self, session_file: str | None = None) -> TelegramClient:
         """
         Get or create a TelegramClient instance.
         Ensures the client is connected before returning.
@@ -37,17 +37,19 @@ class TelegramClientFactory:
         """
         async with self._lock:
             if self._client is None:
-                self._client = await self._create_client()
+                self._client = await self._create_client(
+                    session_file=session_file or config.TELEGRAM_SESSION_FILE
+                )
             return self._client
 
-    async def _create_client(self) -> TelegramClient:
+    async def _create_client(self, session_file: str) -> TelegramClient:
         """
         Create a new TelegramClient instance.
         """
 
         client = TelegramClient(
             TelethonTelegramClient(
-                session=config.TELEGRAM_SESSION_FILE,
+                session=session_file,
                 api_id=config.TELEGRAM_API_ID,
                 api_hash=config.TELEGRAM_API_HASH,
                 request_retries=config.TELEGRAM_RETRY_COUNT,
