@@ -22,7 +22,7 @@ services:
       - data:/usr/app/data
       - db:/usr/app/db
       - ./.scheduler.env:/usr/app/.env
-    entrypoint: ["python", "scheduler.py"]
+    entrypoint: ["python", "parser.py"]
 
   api-service:
     container_name: api-service

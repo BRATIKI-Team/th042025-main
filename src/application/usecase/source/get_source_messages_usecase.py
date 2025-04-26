@@ -1,8 +1,9 @@
 from typing import List
 import logging
 
-from src.domain.model.grouped_source_model import GroupedSourceModel
+from src.domain.enum.source_type_enum import SourceType
 from src.domain.model.message_model import MessageModel
+from src.domain.model.source_model import SourceModel
 from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.message_repository import MessageRepository
 from src.domain.repository.telegram_repository import TelegramRepository
@@ -22,39 +23,35 @@ class GetSourceMessagesUsecase:
         self._message_repository = message_repository
         self._telegram_repository = telegram_repository
 
-    async def execute(self, grouped_source: GroupedSourceModel) -> List[MessageModel]:
+    async def execute(self, source: SourceModel) -> List[MessageModel]:
         """
         Get messages from the specified source group based on the source type.
         """
         logger.info(
-            f"Getting messages for source group: {grouped_source.url} (type: {grouped_source.type})"
+            f"Getting messages for source group: {source.url} (type: {source.type})"
         )
 
         # Get messages based on source type
         messages = []
-        if grouped_source.type == 0:  # Telegram source
-            messages = await self._get_telegram_messages(grouped_source)
+        if source.type == SourceType.TG:  # Telegram source
+            messages = await self._get_telegram_messages(source)
         else:
-            logger.warning(f"Unsupported source type: {grouped_source.type}")
+            logger.warning(f"Unsupported source type: {source.type}")
 
-        # Update last_hit_datetime for all source IDs
-        source_ids = [source.id for source in grouped_source.sources]
-        await self._source_repository.update_last_hit_datetime(source_ids)
+        await self._source_repository.update_last_hit_datetime([source.id])
 
         return messages
 
-    async def _get_telegram_messages(
-        self, grouped_source: GroupedSourceModel
-    ) -> List[MessageModel]:
+    async def _get_telegram_messages(self, source: SourceModel) -> List[MessageModel]:
         """
         Get messages from a Telegram source.
         """
         # Extract channel username from URL
         # Assuming URL format is https://t.me/channelname or https://telegram.me/channelname
-        channel_username = self._extract_telegram_channel_username(grouped_source.url)
+        channel_username = self._extract_telegram_channel_username(source.url)
 
         if not channel_username:
-            logger.error(f"Invalid Telegram URL: {grouped_source.url}")
+            logger.error(f"Invalid Telegram URL: {source.url}")
             return []
 
         try:
@@ -62,7 +59,7 @@ class GetSourceMessagesUsecase:
             telegram_messages = await self._telegram_repository.get_messages(
                 channel_username=channel_username,
                 limit=10,  # Adjust as needed
-                offset_date=grouped_source.last_hit_datetime,
+                offset_date=source.last_hit_datetime,
             )
 
             if not telegram_messages:
@@ -128,17 +125,15 @@ class GetSourceMessagesUsecase:
                     ],
                 }
 
-                # Add a message entry for each source in the group
-                for source in grouped_source.sources:
-                    messages_to_create.append(
-                        {
-                            "source_id": source.id,
-                            "content": content,
-                            "external_id": str(msg.message_id),
-                            "metadata": metadata,
-                            "published_at": msg.date,
-                        }
-                    )
+                messages_to_create.append(
+                    {
+                        "source_id": source.id,
+                        "content": content,
+                        "external_id": str(msg.message_id),
+                        "metadata": metadata,
+                        "published_at": msg.date,
+                    }
+                )
 
             # Create all messages in a single database operation
             return await self._message_repository.create_many(messages_to_create)

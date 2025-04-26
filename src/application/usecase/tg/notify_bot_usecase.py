@@ -1,28 +1,23 @@
 from typing import List, Set
 import logging
 import os
-import asyncio
 from datetime import datetime
 
 from aiogram import Bot
 from aiogram.enums import ParseMode
 from aiogram.types import (
-    InputFile,
     FSInputFile,
     InputMediaPhoto,
-    InputMediaDocument,
     InputMediaVideo,
 )
 
 from src.application.agents.summary_workflow import SummaryWorkflow
 from src.application.services import IndexService
-from src.domain.model.message_model import MessageModel
 from src.domain.repository.bot_repository import BotRepository
 from src.domain.repository.message_repository import MessageRepository
 from src.domain.repository.summary_repository import SummaryRepository
 from src.domain.repository.user_bot_repository import UserBotRepository
 from src.domain.repository.telegram_repository import TelegramRepository
-from src.infrastructure.config import config
 from src.infrastructure.locks import LockManager
 
 
@@ -33,10 +28,6 @@ class NotifyBotUsecase:
     """
     Usecase for notifying a bot about new messages.
     """
-
-    _semaphore_timeout = 300
-    _active_tasks: Set[int] = set()
-    _initial_delay = 15
 
     def __init__(
         self,
@@ -53,84 +44,36 @@ class NotifyBotUsecase:
         self._summary_repository = summary_repository
         self._telegram_repository = telegram_repository
         self._workflow = SummaryWorkflow(index_service=index_service)
-        self._lock_manager = LockManager()
 
     async def execute(self, bot_id: int) -> None:
         """
         Execute the usecase.
-
-        Args:
-            bot_id: The ID of the bot to notify
-            messages: The messages to notify about
         """
-        task_id = id(asyncio.current_task())
-        self._active_tasks.add(task_id)
-        logger.info(
-            f"Starting notification for bot {bot_id} (task {task_id}, active tasks: {len(self._active_tasks)})"
-        )
 
-        try:
-            # Пытаемся получить семафор с таймаутом
-            try:
-                semaphore = self._lock_manager.get_semaphore(f"notify_bot_{bot_id}")
-                async with asyncio.timeout(self._semaphore_timeout):
-                    async with semaphore:
-                        logger.info(
-                            f"Acquired semaphore for bot {bot_id} (task {task_id})"
-                        )
-
-                        # Ждем некоторое время, чтобы все сообщения успели загрузиться
-                        logger.info(
-                            f"Waiting {self._initial_delay} seconds for messages to load..."
-                        )
-                        await asyncio.sleep(self._initial_delay)
-
-                        await self._execute_with_lock(bot_id)
-            except asyncio.TimeoutError:
-                logger.error(
-                    f"Timeout waiting for semaphore for bot {bot_id} (task {task_id})"
-                )
-                raise
-        finally:
-            self._active_tasks.remove(task_id)
-            logger.info(
-                f"Finished notification for bot {bot_id} (task {task_id}, remaining tasks: {len(self._active_tasks)})"
-            )
-
-    async def _execute_with_lock(self, bot_id: int) -> None:
-        """
-        Execute the usecase with acquired lock.
-        """
-        # Get the bot
         bot = await self._bot_repository.read_by_id(bot_id)
+
         if not bot:
-            return
+            return logging.warning("No bot found with id: %s", bot_id)
 
         messages = await self._message_repository.read_by_bot_and_filter_by_created(
             bot.id, bot.last_notified_at
         )
 
         if len(messages) == 0:
-            print("NO MESSAGES")
-            return
+            return logging.info("No messages for bot with id: %s", bot_id)
 
         summarized_messages = await self._workflow.start_workflow(
             bot.id, bot.description.value, messages
         )
 
-        print("--- MESSAGE RETURN ---")
-        print(summarized_messages)
         if len(summarized_messages) == 0:
-            return
+            return logging.warning("No summaries for bot with id: %s", bot_id)
 
-        # Save summaries to the database
         await self._summary_repository.create_many(bot.id, summarized_messages)
 
-        # Get list of users for this bot
         user_ids = await self._user_bot_repository.get_users_by_bot_id(bot_id)
         if not user_ids:
-            logger.warning(f"No users found for bot {bot_id}")
-            return
+            return logger.warning(f"No users found for bot {bot_id}")
 
         aiogram_bot = Bot(token=bot.token.value)
 

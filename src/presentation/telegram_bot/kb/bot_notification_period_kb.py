@@ -8,10 +8,7 @@ def bot_notification_period_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🔔 МОНОЛИТ", callback_data=BotNotificationPeriod.MONOLITH
-                ),
-                InlineKeyboardButton(
-                    text="🔔 Мгновенно", callback_data=BotNotificationPeriod.MONOLITH
+                    text="🔔 Мгновенно", callback_data=BotNotificationPeriod.INSTANT
                 ),
                 InlineKeyboardButton(
                     text="⏰ 1 час", callback_data=BotNotificationPeriod.HOUR

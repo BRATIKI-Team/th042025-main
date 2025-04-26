@@ -14,6 +14,7 @@ from src.domain.model.channel_info_model import ChannelInfoModel
 from src.domain.model.channel_message_model import ChannelMessageModel
 from src.domain.repository.telegram_repository import TelegramRepository
 from src.infrastructure.tg.telegram_client import TelegramClient
+from src.infrastructure.utils.backoff import backoff
 
 
 class TelegramRepositoryImpl(TelegramRepository):
@@ -102,6 +103,13 @@ class TelegramRepositoryImpl(TelegramRepository):
 
             raise TelegramError(f"File download failed: {str(e)}")
 
+    @backoff(
+        exception=Exception,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
     async def get_messages(
         self,
         channel_username: str,
@@ -275,6 +283,13 @@ class TelegramRepositoryImpl(TelegramRepository):
 
         return attachments
 
+    @backoff(
+        exception=Exception,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
     async def get_channel_info(self, channel_username: str) -> ChannelInfoModel:
         """
         Get information about a channel

@@ -1,17 +1,19 @@
 from dishka import FromDishka, Provider, Scope, provide
 
-from src.application.services import index_service, IndexService
+from src.application.services import IndexService
 from src.application.usecase.bot.delete_bot_usecase import DeleteBotUsecase
+from src.application.usecase.bot.get_active_bots_usecase import GetActiveBotsUsecase
 from src.application.usecase.bot.get_all_bots_usecase import GetAllBotsUsecase
 from src.application.usecase.bot.get_detail_bot_usecase import GetDetailBotUsecase
 from src.application.usecase.bot.get_my_bots_usecase import GetMyBotsUsecase
 from src.application.usecase.bot.is_token_unqiue_usecase import IsTokenUniqueUsecase
 from src.application.usecase.bot.resume_bot_usecase import ResumeBotUsecase
 from src.application.usecase.bot.stop_bot_usecase import StopBotUsecase
-from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
-from src.application.usecase.get_grouped_sources_usecase import GetGroupedSourcesUsecase
-from src.application.usecase.get_source_messages_usecase import GetSourceMessagesUsecase
-from src.application.usecase.notify_bot_usecase import NotifyBotUsecase
+from src.application.usecase.bot.get_bot_by_id_usecase import GetBotByIdUsecase
+from src.application.usecase.source.get_source_messages_usecase import (
+    GetSourceMessagesUsecase,
+)
+from src.application.usecase.tg.notify_bot_usecase import NotifyBotUsecase
 from src.application.usecase.source.accept_source_usecase import AcceptSourceUsecase
 from src.application.usecase.source.get_bot_sources_usecase import GetBotSourcesUsecase
 from src.application.usecase.source.has_accepted_source_usecase import (
@@ -23,9 +25,6 @@ from src.application.usecase.source.has_rejected_source_usecase import (
 from src.application.usecase.source.reject_source_usecase import RejectSourceUsecase
 from src.application.usecase.source.search_sources_usecase import SearchSourcesUsecase
 from src.application.usecase.tg.webhook_usecase import WebhookUsecase
-from src.application.usecase.update_bot_last_notified_usecase import (
-    UpdateBotLastNotifiedUsecase,
-)
 from src.application.usecase.bot.create_bot_usecase import CreateBotUsecase
 from src.application.usecase.source.get_pending_source_usecase import (
     GetPendingSourceUsecase,
@@ -63,12 +62,6 @@ class UsecaseContainer(Provider):
         self, source_repository: FromDishka[SourceRepository]
     ) -> GetPendingSourceUsecase:
         return GetPendingSourceUsecase(source_repository=source_repository)
-
-    @provide(scope=Scope.APP)
-    def get_grouped_sources_usecase(
-        self, source_repository: FromDishka[SourceRepository]
-    ) -> GetGroupedSourcesUsecase:
-        return GetGroupedSourcesUsecase(source_repository=source_repository)
 
     @provide(scope=Scope.APP)
     def get_source_messages_usecase(
@@ -119,12 +112,6 @@ class UsecaseContainer(Provider):
         self, bot_repository: FromDishka[BotRepository]
     ) -> GetBotByIdUsecase:
         return GetBotByIdUsecase(bot_repository=bot_repository)
-
-    @provide(scope=Scope.APP)
-    def update_bot_last_notified_usecase(
-        self, bot_repository: FromDishka[BotRepository]
-    ) -> UpdateBotLastNotifiedUsecase:
-        return UpdateBotLastNotifiedUsecase(bot_repository=bot_repository)
 
     @provide(scope=Scope.APP)
     def notify_bot_usecase(
@@ -266,3 +253,10 @@ class UsecaseContainer(Provider):
             user_repository=user_repository,
             bot_user_repository=bot_user_repository,
         )
+
+    @provide(scope=Scope.APP)
+    def get_active_bots_usecase(
+        self,
+        bot_repository: FromDishka[BotRepository],
+    ) -> GetActiveBotsUsecase:
+        return GetActiveBotsUsecase(bot_repository=bot_repository)

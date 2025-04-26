@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from dishka import FromDishka
 
-from src.application.usecase.get_bot_by_id_usecase import GetBotByIdUsecase
+from src.application.usecase.bot.get_bot_by_id_usecase import GetBotByIdUsecase
 from src.application.usecase.source.accept_source_usecase import AcceptSourceUsecase
 from src.application.usecase.source.get_bot_sources_usecase import GetBotSourcesUsecase
 from src.application.usecase.source.has_accepted_source_usecase import (
