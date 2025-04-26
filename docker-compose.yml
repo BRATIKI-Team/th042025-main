@@ -11,8 +11,8 @@ services:
       - db:/usr/app/db
     entrypoint: ["python", "bot.py"]
 
-  bot-scheduler-service:
-    container_name: bot-scheduler-service
+  bot-parser-service:
+    container_name: bot-parser-service
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,7 +21,7 @@ services:
       - logs:/usr/app/logs
       - data:/usr/app/data
       - db:/usr/app/db
-      - ./.scheduler.env:/usr/app/.env
+      # - ./.scheduler.env:/usr/app/.env
     entrypoint: ["python", "parser.py"]
 
   api-service:
