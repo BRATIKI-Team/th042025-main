@@ -1,13 +1,15 @@
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
-from typing import Dict, Optional
 
 
 class Config(BaseSettings):
     """
     Class configuration
     """
+
+    # App
+    APP_HOST: str = "http://0.0.0.0"
+    APP_PORT: int = 8000
 
     # Telegram Client
     TELEGRAM_TOKEN: SecretStr

@@ -25,3 +25,11 @@ class TelegramRepository(ABC):
     @abstractmethod
     async def get_channel_info(self, channel_username: str) -> ChannelInfoModel:
         pass
+
+    @abstractmethod
+    async def start_bot_listening(self, bot_id: int, bot_token: str) -> None:
+        pass
+
+    @abstractmethod
+    async def stop_bot_listening(self, bot_token: str) -> None:
+        pass

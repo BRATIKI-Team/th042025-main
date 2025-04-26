@@ -22,6 +22,7 @@ from src.application.usecase.source.has_rejected_source_usecase import (
 )
 from src.application.usecase.source.reject_source_usecase import RejectSourceUsecase
 from src.application.usecase.source.search_sources_usecase import SearchSourcesUsecase
+from src.application.usecase.tg.webhook_usecase import WebhookUsecase
 from src.application.usecase.update_bot_last_notified_usecase import (
     UpdateBotLastNotifiedUsecase,
 )
@@ -105,9 +106,12 @@ class UsecaseContainer(Provider):
         self,
         bot_repository: FromDishka[BotRepository],
         user_repository: FromDishka[UserRepository],
+        telegram_repository: FromDishka[TelegramRepository],
     ) -> CreateBotUsecase:
         return CreateBotUsecase(
-            bot_repository=bot_repository, user_repository=user_repository
+            bot_repository=bot_repository,
+            user_repository=user_repository,
+            telegram_repository=telegram_repository,
         )
 
     @provide(scope=Scope.APP)
@@ -189,15 +193,23 @@ class UsecaseContainer(Provider):
 
     @provide(scope=Scope.APP)
     def resume_bot_usecase(
-        self, bot_repository: FromDishka[BotRepository]
+        self,
+        bot_repository: FromDishka[BotRepository],
+        telegram_repository: FromDishka[TelegramRepository],
     ) -> ResumeBotUsecase:
-        return ResumeBotUsecase(bot_repository=bot_repository)
+        return ResumeBotUsecase(
+            bot_repository=bot_repository, telegram_repository=telegram_repository
+        )
 
     @provide(scope=Scope.APP)
     def stop_bot_usecase(
-        self, bot_repository: FromDishka[BotRepository]
+        self,
+        bot_repository: FromDishka[BotRepository],
+        telegram_repository: FromDishka[TelegramRepository],
     ) -> StopBotUsecase:
-        return StopBotUsecase(bot_repository=bot_repository)
+        return StopBotUsecase(
+            bot_repository=bot_repository, telegram_repository=telegram_repository
+        )
 
     @provide(scope=Scope.APP)
     def has_rejected_source_usecase(
@@ -241,3 +253,16 @@ class UsecaseContainer(Provider):
         self, bot_repository: FromDishka[BotRepository]
     ) -> GetAllBotsUsecase:
         return GetAllBotsUsecase(bot_repository=bot_repository)
+
+    @provide(scope=Scope.APP)
+    def webhook_usecase(
+        self,
+        bot_repository: FromDishka[BotRepository],
+        user_repository: FromDishka[UserRepository],
+        bot_user_repository: FromDishka[BotUserRepository],
+    ) -> WebhookUsecase:
+        return WebhookUsecase(
+            bot_repository=bot_repository,
+            user_repository=user_repository,
+            bot_user_repository=bot_user_repository,
+        )

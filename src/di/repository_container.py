@@ -59,6 +59,7 @@ class RepositoryContainer(Provider):
         return TelegramRepositoryImpl(
             tg_client=tg_client,
             download_path=config.TELEGRAM_DOWNLOAD_PATH,
+            app_host=config.APP_HOST,
             max_workers=config.TELEGRAM_PARSER_MAX_WORKERS,
         )
 

@@ -3,6 +3,8 @@ from datetime import datetime
 import logging
 import os
 from typing import List, Optional
+
+from aiogram import Bot
 from telethon.tl.types import Message as TelethonMessage, Channel as TelethonChannel
 from telethon.errors import FloodWaitError, ChatAdminRequiredError, ChannelPrivateError
 
@@ -16,11 +18,16 @@ from src.infrastructure.tg.telegram_client import TelegramClient
 
 class TelegramRepositoryImpl(TelegramRepository):
     def __init__(
-        self, tg_client: TelegramClient, download_path: str, max_workers: int = 10
+        self,
+        tg_client: TelegramClient,
+        download_path: str,
+        app_host: str,
+        max_workers: int = 10,
     ) -> None:
         self._tg_client = tg_client
         self._download_path = download_path
         self._semaphore = asyncio.Semaphore(value=max_workers)
+        self._app_host = app_host
 
     async def download_media(
         self, channel_username: str, message_id: int, file_name: Optional[str] = None
@@ -339,3 +346,23 @@ class TelegramRepositoryImpl(TelegramRepository):
                 logging.warning(f"Failed to get channel photo: {str(e)}")
 
         return None
+
+    async def start_bot_listening(self, bot_id: int, bot_token: str) -> None:
+        bot = Bot(token=bot_token)
+
+        try:
+            await bot.set_webhook(url=f"{self._app_host}/bots/{bot_id}/actions/webhook")
+        except Exception as e:
+            logging.error(f"Failed to start bot listening: {str(e)}")
+        finally:
+            await bot.session.close()
+
+    async def stop_bot_listening(self, bot_token: str) -> None:
+        bot = Bot(token=bot_token)
+
+        try:
+            await bot.delete_webhook()
+        except Exception as e:
+            logging.error(f"Failed to stop bot listening: {str(e)}")
+        finally:
+            await bot.session.close()
