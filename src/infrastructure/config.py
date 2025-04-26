@@ -40,7 +40,7 @@ class Config(BaseSettings):
 
     # OPENAI
     OPENAI_API_KEY: SecretStr
-    OPENAI_MODEL_NAME: str = "gpt-4o-mini"
+    OPENAI_MODEL_NAME: str = "gpt-4.1-mini"
     OPENAI_IMAGE_GEN_MODEL_NAME: str = "dall-e-3"
     # Logs
     LOGS_FILES_PATH: str = "logs"

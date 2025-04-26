@@ -2,8 +2,10 @@ from typing import List
 from pydantic_ai import Agent
 from pydantic_ai.common_tools.duckduckgo import duckduckgo_search_tool
 from pydantic_ai.models import Model
+from openai import RateLimitError
 
 from src.application.dto.source_generate_response import SourceGenerateResponse
+from src.infrastructure.utils.backoff import backoff
 from .prompts import system_prompt
 
 
@@ -26,6 +28,13 @@ class SourceSearcherAgent:
             retries=10,  # Up to 10 retries because of the rate limit
         )
 
+    @backoff(
+        exception=RateLimitError,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
     async def execute(self, topic: str) -> List[SourceGenerateResponse]:
         """
         Execute the agent to search for Telegram channels.

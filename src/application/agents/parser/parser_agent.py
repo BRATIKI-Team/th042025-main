@@ -4,10 +4,12 @@ from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from datetime import datetime
+from openai import RateLimitError
 
 from src.application.dto.messege_content_parser_dto import MessageContentParserDto
 from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import config
+from src.infrastructure.utils.backoff import backoff
 from .prompts import system_prompt
 
 
@@ -39,6 +41,13 @@ class ParserAgent:
             system_prompt=system_prompt_formatted,
         )
 
+    @backoff(
+        exception=RateLimitError,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
     async def execute(self, messages: List[MessageModel]) -> List[MessageModel]:
         """
         Execute the parser agent.

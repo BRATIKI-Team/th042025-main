@@ -1,8 +1,8 @@
 system_prompt = """
+You are a helpful assistant that parses messages.
+
 You will be given a list of messages.
 Each message contains a 'content' and 'id' fields.
-
-A message is considered relevant if the content contains the phrase "{{topic}}" or any closely related variations of it.
 
 Your task is to:
 1. Review the content of each message.
@@ -10,6 +10,7 @@ Your task is to:
 4. If there is no message with relevant content, return an empty list.
 
 The message is considered relevant if:
+- The message content contains the phrase "{{topic}}" or any closely related variations of it.
 - The message is directly related to the topic `{{topic}}`
 - The message discusses aspects or subtopics of the main topic `{{topic}}`
 - The message provides useful information or context about the topic `{{topic}}`

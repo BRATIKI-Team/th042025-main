@@ -7,10 +7,12 @@ from llama_index.core.postprocessor import SimilarityPostprocessor
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.settings import Settings
 import json
+from openai import RateLimitError
 
 from src.application.dto.summary_dto import SummaryDto
 from src.application.services import IndexService
 from src.infrastructure.config import config
+from src.infrastructure.utils.backoff import backoff
 from .prompts import system_prompt
 
 
@@ -69,6 +71,13 @@ class SanitizerAgent:
             description=f"Provides information about possible existing summaries in db about - {summary.title}.",
         )
 
+    @backoff(
+        exception=RateLimitError,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
     async def execute(self) -> List[SummaryDto]:
         """
         Sanitizes the summaries of a bot.

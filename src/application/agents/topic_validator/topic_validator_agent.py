@@ -1,6 +1,8 @@
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
+from openai import RateLimitError
 
+from src.infrastructure.utils.backoff import backoff
 from .prompts import system_prompt
 
 
@@ -21,6 +23,13 @@ class TopicValidatorAgent:
             system_prompt=system_prompt,
         )
 
+    @backoff(
+        exception=RateLimitError,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
     async def execute(self, topic: str) -> bool:
         """
         Execute the agent to validate the topic title.

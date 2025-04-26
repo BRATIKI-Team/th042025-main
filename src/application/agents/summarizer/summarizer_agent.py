@@ -4,11 +4,14 @@ from datetime import datetime
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
+from openai import RateLimitError
+
 from typing import List
 
 from src.domain.model.message_model import MessageModel
 from src.infrastructure.config import config
 from src.application.dto.summary_dto import SummaryDto
+from src.infrastructure.utils.backoff import backoff
 from .prompts import system_prompt
 
 
@@ -32,6 +35,13 @@ class SummarizerAgent:
             system_prompt=system_prompt,
         )
 
+    @backoff(
+        exception=RateLimitError,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
     async def execute(self, messages: List[MessageModel]) -> List[SummaryDto]:
         """
         Execute the summarizer agent.
