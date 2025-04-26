@@ -41,6 +41,8 @@ def backoff(
                     tries += 1
                     elapsed_time = (datetime.now() - start_time).total_seconds()
 
+                    logger.info(f"Backoff with error: {str(e)}")
+
                     if tries >= max_tries or elapsed_time >= max_time:
                         logger.error(
                             f"Max retries ({max_tries}) or time ({max_time}s) exceeded for {func.__name__}. "
