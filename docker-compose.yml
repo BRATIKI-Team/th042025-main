@@ -36,7 +36,9 @@ services:
       - logs:/usr/app/logs
       - data:/usr/app/data
       - db:/usr/app/db
-    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-certfile", "../th042025-client/cert.pem", "--ssl-keyfile", "../th042025-client/key.pem"]
+      - ../th042025-client/cert.pem:/usr/app/cert.pem
+      - ../th042025-client/key.pem:/usr/app/key.pem
+    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-certfile", "/usr/app/cert.pem", "--ssl-keyfile", "/usr/app/key.pem"]
 
   web-service:
     container_name: web-service
