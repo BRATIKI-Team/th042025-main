@@ -60,6 +60,7 @@ class RepositoryContainer(Provider):
             tg_client=tg_client,
             download_path=config.TELEGRAM_DOWNLOAD_PATH,
             app_host=config.APP_HOST,
+            app_port=config.APP_PORT,
             max_workers=config.TELEGRAM_PARSER_MAX_WORKERS,
         )
 

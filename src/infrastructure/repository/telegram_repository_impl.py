@@ -23,12 +23,14 @@ class TelegramRepositoryImpl(TelegramRepository):
         tg_client: TelegramClient,
         download_path: str,
         app_host: str,
+        app_port: int,
         max_workers: int = 10,
     ) -> None:
         self._tg_client = tg_client
         self._download_path = download_path
         self._semaphore = asyncio.Semaphore(value=max_workers)
         self._app_host = app_host
+        self._app_port = app_port
 
     async def download_media(
         self, channel_username: str, message_id: int, file_name: Optional[str] = None
@@ -366,7 +368,9 @@ class TelegramRepositoryImpl(TelegramRepository):
         bot = Bot(token=bot_token)
 
         try:
-            await bot.set_webhook(url=f"{self._app_host}/bots/{bot_id}/actions/webhook")
+            await bot.set_webhook(
+                url=f"{self._app_host}:{self._app_port}/bots/{bot_id}/actions/webhook"
+            )
         except Exception as e:
             logging.error(f"Failed to start bot listening: {str(e)}")
         finally:
