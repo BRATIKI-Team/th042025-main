@@ -26,11 +26,7 @@ Follow these rules:
 6. Summary should be only on Russian.
 
 ### **Output Format**:
-**Dont add any explanation/description by yourself in the output.**
 
-Your response should be a list of summaries' objects,
-where each summary is represented as a dictionary with the following fields:
-Result:
 [
   {
     "title": "Title of the Combined Summary",
@@ -44,6 +40,7 @@ Result:
   ...
 ]
 
+**Dont add any explanation/description by yourself in the output.**
 
 CHECK YOUR ANSWER BEFORE RETURNING IT!!!.
 """
