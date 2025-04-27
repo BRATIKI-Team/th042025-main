@@ -13,6 +13,7 @@ from src.domain.model.source_model import SourceModel
 from src.domain.repository.source_repository import SourceRepository
 from src.domain.repository.telegram_repository import TelegramRepository
 from src.infrastructure.dao.source_dao import SourceDAO
+from src.infrastructure.utils.backoff import backoff
 
 
 class SourceRepositoryImpl(SourceRepository):
@@ -52,31 +53,43 @@ class SourceRepositoryImpl(SourceRepository):
         return await self.__validate_topic_agent.execute(topic=topic)
 
     async def search_sources(self, bot_id: int, topic: str) -> None:
-        result_responses: list[SourceGenerateResponse] = []
-        while len(result_responses) < 10:
-            responses = await self.__search_sources_agent.execute(topic=topic)
-
-            for response in responses:
-                try:
-                    await self.__telegram_repository.get_channel_info(response.url)
-                    result_responses.append(response)
-                except Exception:
-                    continue
+        sources = await self.__search_sources_agent.execute(topic=topic)
+        filtered_sources = await self._get_filtered_source(sources)
 
         models = []
-        for response in result_responses:
+        for source in filtered_sources:
             models.append(
                 SourceDAO(
                     bot_id=bot_id,
-                    url=response.url,
+                    url=source.url,
                     type=SourceType.TG.value,
                     status=SourceStatus.PENDING.value,
-                    description=response.description,
-                    name=response.url,
+                    description=source.description,
+                    name=source.url,
                 )
             )
 
         await SourceDAO.insert(*models)
+
+    @backoff(
+        exception=Exception,
+        max_tries=5,
+        max_time=60,
+        initial_delay=1.0,
+        exponential_base=2.0,
+    )
+    async def _get_filtered_source(
+        self, sources: List[SourceGenerateResponse]
+    ) -> List[SourceGenerateResponse]:
+        result = []
+        for source in sources:
+            try:
+                await self.__telegram_repository.get_channel_info(source.url)
+                result.append(source)
+            except Exception:
+                continue
+
+        return result
 
     async def change_status(self, id: int, status: SourceStatus) -> None:
         await SourceDAO.update({SourceDAO.status: status.value}).where(
