@@ -31,14 +31,14 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8443:8443"
     volumes:
       - logs:/usr/app/logs
       - data:/usr/app/data
       - db:/usr/app/db
       - ../th042025-client/cert.pem:/usr/app/cert.pem
       - ../th042025-client/key.pem:/usr/app/key.pem
-    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-certfile", "/usr/app/cert.pem", "--ssl-keyfile", "/usr/app/key.pem"]
+    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8443", "--ssl-certfile", "/usr/app/cert.pem", "--ssl-keyfile", "/usr/app/key.pem"]
 
   web-service:
     container_name: web-service
