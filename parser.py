@@ -33,9 +33,9 @@ async def main() -> None:
 
             at_least_one = False
             for source in sources:
-                if (start_date - source.last_hit_datetime) < timedelta(
-                    seconds=bot.notification_period.value
-                ):
+                if (not source.last_hit_datetime is None) and (
+                    start_date - source.last_hit_datetime
+                ) < timedelta(seconds=bot.notification_period.value):
                     continue
 
                 await get_source_messages_usecase.execute(source=source)
